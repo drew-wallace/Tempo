@@ -22,9 +22,9 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Steps"
         android:id="@+id/stepsTxt"
+        android:layout_marginTop="26dp"
         android:layout_below="@+id/textView"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="53dp" />
+        android:layout_centerHorizontal="true" />
 
     <Button
         android:layout_width="wrap_content"
@@ -42,8 +42,7 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Start Time"
         android:id="@+id/stTxt"
-        android:layout_marginTop="51dp"
-        android:layout_below="@+id/stepsTxt"
+        android:layout_centerVertical="true"
         android:layout_centerHorizontal="true" />
 
     <TextView
@@ -52,8 +51,9 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="End Time"
         android:id="@+id/etTxt"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_below="@+id/stTxt"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="56dp" />
 
     <Button
         style="?android:attr/buttonStyleSmall"
@@ -63,4 +63,13 @@
         android:id="@+id/stepsButton"
         android:layout_alignTop="@+id/steps"
         android:layout_toRightOf="@+id/stepsTxt" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Steps Per Minute"
+        android:id="@+id/sPerMin"
+        android:layout_below="@+id/stepsTxt"
+        android:layout_centerHorizontal="true" />
 </RelativeLayout>

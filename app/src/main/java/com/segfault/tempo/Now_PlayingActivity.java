@@ -42,7 +42,7 @@ public class Now_PlayingActivity extends ActionBarActivity {
     private static final String TAG = Now_PlayingActivity.class.getSimpleName();
     private static final int REQUEST_OAUTH = 1;
     private static final String DATE_FORMAT = "yyyy.MM.dd HH:mm:ss";
-    private String tmp,start,end;
+    private String tmp,start,end,spm,tmp2;
 
     /**
      *  Track whether an authorization activity is stacking over the current activity, i.e. when
@@ -64,9 +64,12 @@ public class Now_PlayingActivity extends ActionBarActivity {
         if (savedInstanceState != null) {
             authInProgress = savedInstanceState.getBoolean(AUTH_PENDING);
         }
-        tmp = "NA";
+        tmp = "0";
+        tmp2 = "0";
         start = "NA";
         end = "NA";
+        spm = "0";
+
         buildFitnessClient();
         Button dDisplay = (Button) findViewById(R.id.steps);
         dDisplay.setOnClickListener(new View.OnClickListener() {
@@ -358,19 +361,25 @@ public class Now_PlayingActivity extends ActionBarActivity {
             for(Field field : dp.getDataType().getFields()) {
                 Log.i(TAG, "\tField: " + field.getName() +
                         " Value: " + dp.getValue(field));
-                tmp = "Steps: " + dp.getValue(field);Log.i(TAG,tmp);
+                tmp2 = "" +  dp.getValue(field);
+                tmp = "Steps: " + tmp2;Log.i(TAG,tmp2);
             }
         }
     }
     // [END parse_dataset]
     private void printTxt()
     {
+            String tmp3 = tmp2.substring(0,tmp2.length());
+            double value = Double.parseDouble(tmp3);
+            spm = "Steps Per Minute " + String.valueOf(value/1440);
             TextView stepsText = (TextView) findViewById(R.id.stepsTxt);
             stepsText.setText(tmp);
             TextView startText = (TextView) findViewById(R.id.stTxt);
             startText.setText(start);
             TextView endText = (TextView) findViewById(R.id.etTxt);
             endText.setText(end);
+            TextView spmText = (TextView) findViewById(R.id.sPerMin);
+            spmText.setText(spm);
     }
 
     /**
