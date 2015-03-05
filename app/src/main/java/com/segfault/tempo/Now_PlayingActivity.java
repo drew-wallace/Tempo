@@ -74,8 +74,7 @@ public class Now_PlayingActivity extends ActionBarActivity {
         Button dDisplay = (Button) findViewById(R.id.steps);
         dDisplay.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                new InsertAndVerifyDataTask().execute();
-            }
+                new InsertAndVerifyDataTask().execute();}
         });
         Button sDisplay = (Button) findViewById(R.id.stepsButton);
         sDisplay.setOnClickListener(new View.OnClickListener() {
@@ -252,7 +251,7 @@ public class Now_PlayingActivity extends ActionBarActivity {
         Date now = new Date();
         cal.setTime(now);
         long endTime = cal.getTimeInMillis();
-        cal.add(Calendar.HOUR_OF_DAY, -1);
+        cal.add(Calendar.MINUTE, -1);
         long startTime = cal.getTimeInMillis();
 
         // Create a data source
@@ -288,7 +287,7 @@ public class Now_PlayingActivity extends ActionBarActivity {
         Date now = new Date();
         cal.setTime(now);
         long endTime = cal.getTimeInMillis();
-        cal.add(Calendar.WEEK_OF_YEAR, -1);
+        cal.add(Calendar.HOUR_OF_DAY, -1);
         long startTime = cal.getTimeInMillis();
 
         SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
@@ -305,7 +304,7 @@ public class Now_PlayingActivity extends ActionBarActivity {
                         // Analogous to a "Group By" in SQL, defines how data should be aggregated.
                         // bucketByTime allows for a time span, whereas bucketBySession would allow
                         // bucketing by "sessions", which would need to be defined in code.
-                .bucketByTime(1, TimeUnit.DAYS)
+                .bucketByTime(1, TimeUnit.MINUTES)
                 .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                 .build();
         // [END build_read_data_request]
@@ -321,6 +320,7 @@ public class Now_PlayingActivity extends ActionBarActivity {
      * consideration. A better option would be to dump the data you receive to a local data
      * directory to avoid exposing it to other applications.
      */
+    //////////////////////////PRINT/////////////////////////
     private void printData(DataReadResult dataReadResult) {
         // [START parse_read_data_result]
         // If the DataReadRequest object specified aggregated data, dataReadResult will be returned
@@ -343,7 +343,21 @@ public class Now_PlayingActivity extends ActionBarActivity {
         }
         // [END parse_read_data_result]
     }
-
+    private void printTxt()
+    {
+        String tmp3 = tmp2.substring(0,tmp2.length());
+        double value = Double.parseDouble(tmp3);
+        spm = "Steps Per Minute " + String.valueOf(value/1440);
+        TextView stepsText = (TextView) findViewById(R.id.stepsTxt);
+        stepsText.setText(tmp);
+        TextView startText = (TextView) findViewById(R.id.stTxt);
+        startText.setText(start);
+        TextView endText = (TextView) findViewById(R.id.etTxt);
+        endText.setText(end);
+        TextView spmText = (TextView) findViewById(R.id.sPerMin);
+        spmText.setText(spm);
+    }
+    ////////////////////////////////////////////////////////////////////
     // [START parse_dataset]
     private void dumpDataSet(DataSet dataSet) {
         Log.i(TAG, "Data returned for Data type: " + dataSet.getDataType().getName());
@@ -367,20 +381,6 @@ public class Now_PlayingActivity extends ActionBarActivity {
         }
     }
     // [END parse_dataset]
-    private void printTxt()
-    {
-            String tmp3 = tmp2.substring(0,tmp2.length());
-            double value = Double.parseDouble(tmp3);
-            spm = "Steps Per Minute " + String.valueOf(value/1440);
-            TextView stepsText = (TextView) findViewById(R.id.stepsTxt);
-            stepsText.setText(tmp);
-            TextView startText = (TextView) findViewById(R.id.stTxt);
-            startText.setText(start);
-            TextView endText = (TextView) findViewById(R.id.etTxt);
-            endText.setText(end);
-            TextView spmText = (TextView) findViewById(R.id.sPerMin);
-            spmText.setText(spm);
-    }
 
     /**
      * Delete a {@link DataSet} from the History API. In this example, we delete all
