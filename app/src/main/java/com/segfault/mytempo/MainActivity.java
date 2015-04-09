@@ -1,15 +1,11 @@
-package com.segfault.tempo;
+package com.segfault.mytempo;
 
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.os.PowerManager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -17,7 +13,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 
-public class HubActivity extends ActionBarActivity {
+public class MainActivity extends ActionBarActivity {
 
     private NotificationManager mNM;
     //private PedometerSettings mPedometerSettings;
@@ -25,7 +21,7 @@ public class HubActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_hub);
+        setContentView(R.layout.activity_main);
 
         //Notifier
         Toast.makeText(this, "Tempo Started", Toast.LENGTH_SHORT).show();
@@ -36,25 +32,39 @@ public class HubActivity extends ActionBarActivity {
         run.setOnClickListener (new View.OnClickListener()
         {
             public void onClick(View v) {
-                Intent i = new Intent(getApplicationContext(),RunActivity.class);
+                Intent i = new Intent(getApplicationContext(),CounterActivity.class);
                 startActivity(i);
             }
         });
-        Button nowPlaying = (Button) findViewById(R.id.Now_Playing);
-        nowPlaying.setOnClickListener (new View.OnClickListener()
+        Button nPlay = (Button) findViewById(R.id.Now_Playing);
+        nPlay.setOnClickListener (new View.OnClickListener()
         {
             public void onClick(View v) {
-                Intent i = new Intent(getApplicationContext(),Now_PlayingActivity.class);
+                Intent i = new Intent(getApplicationContext(),MusicActivity.class);
+                startActivity(i);
+            }
+        });
+        Button hist = (Button) findViewById(R.id.History);
+        hist.setOnClickListener (new View.OnClickListener()
+        {
+            public void onClick(View v) {
+                Intent i = new Intent(getApplicationContext(),HistoryActivity.class);
+                startActivity(i);
+            }
+        });
+        Button loc = (Button) findViewById(R.id.My_Playlists);
+        loc.setOnClickListener (new View.OnClickListener()
+        {
+            public void onClick(View v) {
+                Intent i = new Intent(getApplicationContext(),PlayListActivity.class);
                 startActivity(i);
             }
         });
     }
-
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_hub, menu);
+        getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
@@ -72,6 +82,9 @@ public class HubActivity extends ActionBarActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+
+
     /**
      * Show a notification while this service is running.
      */
@@ -82,7 +95,7 @@ public class HubActivity extends ActionBarActivity {
         notification.flags = Notification.FLAG_NO_CLEAR | Notification.FLAG_ONGOING_EVENT;
         Intent pedometerIntent = new Intent();
         //pedometerIntent.setComponent(new ComponentName(this, Pedometer.class));
-       // pedometerIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        // pedometerIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
                 pedometerIntent, 0);
         notification.setLatestEventInfo(this, text,

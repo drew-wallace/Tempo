@@ -1,8 +1,11 @@
-package com.segfault.tempo;
+package com.segfault.mytempo;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -30,19 +33,36 @@ import com.google.android.gms.fitness.request.DataDeleteRequest;
 import com.google.android.gms.fitness.request.DataReadRequest;
 import com.google.android.gms.fitness.result.DataReadResult;
 
+import org.w3c.dom.Text;
+
+import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
+import java.util.Calendar;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
-public class Now_PlayingActivity extends ActionBarActivity {
+import java.util.logging.LogRecord;
 
-    private static final String TAG = Now_PlayingActivity.class.getSimpleName();
+
+public class HistoryActivity extends ActionBarActivity {
+
+    public static final String TAG = "BasicHistoryApi";
     private static final int REQUEST_OAUTH = 1;
     private static final String DATE_FORMAT = "yyyy.MM.dd HH:mm:ss";
-    private String tmp,start,end,spm,tmp2;
+    private String tmp,tmp2,tmp3,tmp4;
+    Timer timer = new Timer();
+    TextView stepsText,stepsText2,distText,distText2;
+    int counter;
+    int i;
+    FileOutputStream outputStream;
+
 
     /**
      *  Track whether an authorization activity is stacking over the current activity, i.e. when
@@ -57,32 +77,28 @@ public class Now_PlayingActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_now__playing);
+        setContentView(R.layout.activity_history);
         // This method sets up our custom logger, which will print all log messages to the device
         // screen, as well as to adb logcat.
+        //initializeLogging();
 
         if (savedInstanceState != null) {
             authInProgress = savedInstanceState.getBoolean(AUTH_PENDING);
         }
+
         tmp = "0";
         tmp2 = "0";
-        start = "NA";
-        end = "NA";
-        spm = "0";
+        tmp3 = "0";
+        tmp4 = "0";
+        stepsText = (TextView) findViewById(R.id.todaySteps);
+        stepsText2 = (TextView)findViewById(R.id.yestSteps);
+        distText = (TextView) findViewById(R.id.todayDist);
+        distText2 = (TextView) findViewById(R.id.yestDist);
+        startTimer();
+        counter = 0;
+        i = 1;
 
         buildFitnessClient();
-        Button dDisplay = (Button) findViewById(R.id.steps);
-        dDisplay.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                new InsertAndVerifyDataTask().execute();}
-        });
-        Button sDisplay = (Button) findViewById(R.id.stepsButton);
-        sDisplay.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                printTxt();
-            }
-        });
-
     }
     /**
      *  Build a {@link com.google.android.gms.common.api.GoogleApiClient} that will authenticate the user and allow the application
@@ -97,6 +113,7 @@ public class Now_PlayingActivity extends ActionBarActivity {
         mClient = new GoogleApiClient.Builder(this)
                 .addApi(Fitness.API)
                 .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
+                .addScope(new Scope(Scopes.FITNESS_LOCATION_READ_WRITE))
                 .addConnectionCallbacks(
                         new GoogleApiClient.ConnectionCallbacks() {
                             @Override
@@ -105,7 +122,7 @@ public class Now_PlayingActivity extends ActionBarActivity {
                                 // Now you can make calls to the Fitness APIs.  What to do?
                                 // Look at some data!!
                                 new InsertAndVerifyDataTask().execute();
-                                printTxt();
+                                //printTxt();
                             }
 
                             @Override
@@ -129,7 +146,7 @@ public class Now_PlayingActivity extends ActionBarActivity {
                                 if (!result.hasResolution()) {
                                     // Show the localized error dialog
                                     GooglePlayServicesUtil.getErrorDialog(result.getErrorCode(),
-                                            Now_PlayingActivity.this, 0).show();
+                                            HistoryActivity.this, 0).show();
                                     return;
                                 }
                                 // The failure has a resolution. Resolve it.
@@ -139,7 +156,7 @@ public class Now_PlayingActivity extends ActionBarActivity {
                                     try {
                                         Log.i(TAG, "Attempting to resolve failed connection");
                                         authInProgress = true;
-                                        result.startResolutionForResult(Now_PlayingActivity.this,
+                                        result.startResolutionForResult(HistoryActivity.this,
                                                 REQUEST_OAUTH);
                                     } catch (IntentSender.SendIntentException e) {
                                         Log.e(TAG,
@@ -200,7 +217,7 @@ public class Now_PlayingActivity extends ActionBarActivity {
         protected Void doInBackground(Void... params) {
             //First, create a new dataset and insertion request.
             DataSet dataSet = insertFitnessData();
-
+            DataSet dataSet2 = insertFitnessData2();
             // [START insert_dataset]
             // Then, invoke the History API to insert the data and await the result, which is
             // possible here because of the {@link AsyncTask}. Always include a timeout when calling
@@ -210,9 +227,12 @@ public class Now_PlayingActivity extends ActionBarActivity {
             com.google.android.gms.common.api.Status insertStatus =
                     Fitness.HistoryApi.insertData(mClient, dataSet)
                             .await(1, TimeUnit.MINUTES);
+            com.google.android.gms.common.api.Status insertStatus2 =
+                    Fitness.HistoryApi.insertData(mClient, dataSet2)
+                            .await(1, TimeUnit.MINUTES);
 
             // Before querying the data, check to see if the insertion succeeded.
-            if (!insertStatus.isSuccess()) {
+            if (!insertStatus.isSuccess() || !insertStatus2.isSuccess()) {
                 Log.i(TAG, "There was a problem inserting the dataset.");
                 return null;
             }
@@ -234,7 +254,7 @@ public class Now_PlayingActivity extends ActionBarActivity {
             // For the sake of the sample, we'll print the data so we can see what we just added.
             // In general, logging fitness information should be avoided for privacy reasons.
             printData(dataReadResult);
-
+            //deleteData();
             return null;
         }
     }
@@ -251,7 +271,7 @@ public class Now_PlayingActivity extends ActionBarActivity {
         Date now = new Date();
         cal.setTime(now);
         long endTime = cal.getTimeInMillis();
-        cal.add(Calendar.MINUTE, -1);
+        cal.add(Calendar.HOUR_OF_DAY, -1);
         long startTime = cal.getTimeInMillis();
 
         // Create a data source
@@ -263,20 +283,51 @@ public class Now_PlayingActivity extends ActionBarActivity {
                 .build();
 
         // Create a data set
-        int stepCountDelta = 0;
+        int stepCountDelta = 1000;
         DataSet dataSet = DataSet.create(dataSource);
         // For each data point, specify a start time, end time, and the data value -- in this case,
         // the number of new steps.
-        dataSet.add(
-                dataSet.createDataPoint()
-                        .setTimeInterval(startTime, endTime, TimeUnit.MILLISECONDS)
-                        .setIntValues(stepCountDelta)
-        );
+        DataPoint dataPoint = dataSet.createDataPoint()
+                .setTimeInterval(startTime, endTime, TimeUnit.MILLISECONDS);
+        dataPoint.getValue(Field.FIELD_STEPS).setInt(stepCountDelta);
+        dataSet.add(dataPoint);
         // [END build_insert_data_request]
 
         return dataSet;
     }
+    private DataSet insertFitnessData2() {
+        Log.i(TAG, "Creating a new data insert request");
 
+        // [START build_insert_data_request]
+        // Set a start and end time for our data, using a start time of 1 hour before this moment.
+        Calendar cal = Calendar.getInstance();
+        Date now = new Date();
+        cal.setTime(now);
+        long endTime = cal.getTimeInMillis();
+        cal.add(Calendar.HOUR_OF_DAY, -1);
+        long startTime = cal.getTimeInMillis();
+
+        // Create a data source
+        DataSource dataSource = new DataSource.Builder()
+                .setAppPackageName(this)
+                .setDataType(DataType.TYPE_DISTANCE_DELTA)
+                .setName(TAG + " - step count")
+                .setType(DataSource.TYPE_RAW)
+                .build();
+
+        // Create a data set
+        float distCountDelta = 10;
+        DataSet dataSet = DataSet.create(dataSource);
+        // For each data point, specify a start time, end time, and the data value -- in this case,
+        // the number of new steps.
+        DataPoint dataPoint = dataSet.createDataPoint()
+                .setTimeInterval(startTime, endTime, TimeUnit.MILLISECONDS);
+        dataPoint.getValue(Field.FIELD_DISTANCE).setFloat(distCountDelta);
+        dataSet.add(dataPoint);
+        // [END build_insert_data_request]
+
+        return dataSet;
+    }
     /**
      * Return a {@link DataReadRequest} for all step count changes in the past week.
      */
@@ -285,9 +336,15 @@ public class Now_PlayingActivity extends ActionBarActivity {
         // Setting a start and end date using a range of 1 week before this moment.
         Calendar cal = Calendar.getInstance();
         Date now = new Date();
-        cal.setTime(now);
+        //cal.setTime(formatted);
+        int year,month,day;
+        year = cal.get(Calendar.YEAR);
+        month = cal.get(Calendar.MONTH);
+        day = cal.get(Calendar.DAY_OF_MONTH);
+        System.out.println(year+ " "+month+" "+day);
+        cal.set(year,month,day+1,0,0);
         long endTime = cal.getTimeInMillis();
-        cal.add(Calendar.HOUR_OF_DAY, -1);
+        cal.add(Calendar.DAY_OF_WEEK, -2);
         long startTime = cal.getTimeInMillis();
 
         SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
@@ -300,15 +357,15 @@ public class Now_PlayingActivity extends ActionBarActivity {
                 // In this example, it's very unlikely that the request is for several hundred
                 // datapoints each consisting of a few steps and a timestamp.  The more likely
                 // scenario is wanting to see how many steps were walked per day, for 7 days.
+                .aggregate(DataType.TYPE_DISTANCE_DELTA, DataType.AGGREGATE_DISTANCE_DELTA)
                 .aggregate(DataType.TYPE_STEP_COUNT_DELTA, DataType.AGGREGATE_STEP_COUNT_DELTA)
                         // Analogous to a "Group By" in SQL, defines how data should be aggregated.
                         // bucketByTime allows for a time span, whereas bucketBySession would allow
                         // bucketing by "sessions", which would need to be defined in code.
-                .bucketByTime(1, TimeUnit.MINUTES)
+                .bucketByTime(1, TimeUnit.DAYS)
                 .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                 .build();
         // [END build_read_data_request]
-
         return readRequest;
     }
 
@@ -320,7 +377,6 @@ public class Now_PlayingActivity extends ActionBarActivity {
      * consideration. A better option would be to dump the data you receive to a local data
      * directory to avoid exposing it to other applications.
      */
-    //////////////////////////PRINT/////////////////////////
     private void printData(DataReadResult dataReadResult) {
         // [START parse_read_data_result]
         // If the DataReadRequest object specified aggregated data, dataReadResult will be returned
@@ -343,12 +399,54 @@ public class Now_PlayingActivity extends ActionBarActivity {
         }
         // [END parse_read_data_result]
     }
-    private void printTxt()
+
+
+    // [START parse_dataset]
+
+    private void dumpDataSet(DataSet dataSet) {
+        Log.i(TAG, "Data returned for Data type: " + dataSet.getDataType().getName());
+        SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
+
+        System.out.println("          asdjkl");
+        for (DataPoint dp : dataSet.getDataPoints()) {
+
+            if(i%2 == 1)
+            {
+                tmp2 = tmp;
+                System.out.println("          asd");
+            }
+            else {
+                tmp4 = tmp3;
+                System.out.println("          jkl");
+            }
+            System.out.println("             " + i);
+            Log.i(TAG, "Data point:");
+            Log.i(TAG, "\tType: " + dp.getDataType().getName());
+            Log.i(TAG, "\tStart: " + dateFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS)));
+            Log.i(TAG, "\tEnd: " + dateFormat.format(dp.getEndTime(TimeUnit.MILLISECONDS)));
+            for (Field field : dp.getDataType().getFields()) {
+                Log.i(TAG, "\tField: " + field.getName() +
+                        " Value: " + dp.getValue(field));
+                System.out.println("blah " + i);
+                if(i%2 == 1)
+                {
+                    tmp = "" + dp.getValue(field);
+                }
+                else
+                {
+                    tmp3 = "" + dp.getValue(field);
+                }
+                i++;
+            }
+        }
+    }
+    // [END parse_dataset]
+    /*private void printTxt()
     {
         String tmp3 = tmp2.substring(0,tmp2.length());
         double value = Double.parseDouble(tmp3);
         spm = "Steps Per Minute " + String.valueOf(value/1440);
-        TextView stepsText = (TextView) findViewById(R.id.stepsTxt);
+        /*TextView stepsText = (TextView) findViewById(R.id.stepsTxt);
         stepsText.setText(tmp);
         TextView startText = (TextView) findViewById(R.id.stTxt);
         startText.setText(start);
@@ -356,31 +454,26 @@ public class Now_PlayingActivity extends ActionBarActivity {
         endText.setText(end);
         TextView spmText = (TextView) findViewById(R.id.sPerMin);
         spmText.setText(spm);
-    }
-    ////////////////////////////////////////////////////////////////////
-    // [START parse_dataset]
-    private void dumpDataSet(DataSet dataSet) {
-        Log.i(TAG, "Data returned for Data type: " + dataSet.getDataType().getName());
-        SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
-        tmp = "";
+    }*/
+    protected void startTimer() {
+        //isTimerRunning = true;
+        timer.scheduleAtFixedRate(new TimerTask() {
+            public void run() {
+                //counter += 1; //increase every sec
+                mHandler.obtainMessage(1).sendToTarget();
 
-        for (DataPoint dp : dataSet.getDataPoints()) {
-            Log.i(TAG, "Data point:");
-            Log.i(TAG, "\tType: " + dp.getDataType().getName());
-            Log.i(TAG, "\tStart: " + dateFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS)));
-            Log.i(TAG, "\tEnd: " + dateFormat.format(dp.getEndTime(TimeUnit.MILLISECONDS)));
-            start =  "Start: " + dateFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS));
-            end =  "End: " + dateFormat.format(dp.getEndTime(TimeUnit.MILLISECONDS));
-
-            for(Field field : dp.getDataType().getFields()) {
-                Log.i(TAG, "\tField: " + field.getName() +
-                        " Value: " + dp.getValue(field));
-                tmp2 = "" +  dp.getValue(field);
-                tmp = "Steps: " + tmp2;Log.i(TAG,tmp2);
             }
+        }, 0, 1000);
+    };
+
+    public Handler mHandler = new Handler() {
+        public void handleMessage(Message msg) {
+            stepsText.setText(tmp);//today
+            stepsText2.setText(tmp2);//tomorrow
+            distText.setText(tmp3);
+            distText2.setText(tmp4);
         }
-    }
-    // [END parse_dataset]
+    };
 
     /**
      * Delete a {@link DataSet} from the History API. In this example, we delete all
@@ -427,7 +520,7 @@ public class Now_PlayingActivity extends ActionBarActivity {
 
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_now__playing, menu);
+        getMenuInflater().inflate(R.menu.menu_history, menu);
         return true;
     }
 
@@ -445,4 +538,10 @@ public class Now_PlayingActivity extends ActionBarActivity {
 
         return super.onOptionsItemSelected(item);
     }
+    public void saveToDataBase()
+    {
+
+    }
+
+
 }

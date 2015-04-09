@@ -1,4 +1,4 @@
-package com.segfault.tempo;
+package com.segfault.mytempo;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;
