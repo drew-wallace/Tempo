@@ -75,6 +75,7 @@ public class Run_HistoryActivity extends ActionBarActivity {
 
     Run_HistoryActivity(long start,Context contextTmp)
     {
+        System.out.println("-----" + start);
         long end = System.currentTimeMillis();
         timeWindow = end - start;
         context= contextTmp;
@@ -111,7 +112,7 @@ public class Run_HistoryActivity extends ActionBarActivity {
         mClient = new GoogleApiClient.Builder(context)
                 .addApi(Fitness.API)
                 .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
-                .addScope(new Scope(Scopes.FITNESS_LOCATION_READ_WRITE))
+                //.addScope(new Scope(Scopes.FITNESS_LOCATION_READ_WRITE))
                 .addConnectionCallbacks(
                         new GoogleApiClient.ConnectionCallbacks() {
                             @Override

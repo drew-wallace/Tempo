@@ -178,6 +178,7 @@ public class PlayListActivity extends ActionBarActivity {
             layoutParams = new RelativeLayout.LayoutParams(
                     RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
             layoutParams.setMargins(0, 150*i, 0, 200);
+            myButton.setBackgroundColor(0xFFFFFFFF);
             rLayout.addView(myButton,layoutParams);
 
 

@@ -28,7 +28,7 @@ public class MainActivity extends ActionBarActivity {
         mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
         showNotification();
 
-        Button run = (Button) findViewById(R.id.Run);
+        Button run = (Button) findViewById(R.id.stop);
         run.setOnClickListener (new View.OnClickListener()
         {
             public void onClick(View v) {
@@ -36,7 +36,7 @@ public class MainActivity extends ActionBarActivity {
                 startActivity(i);
             }
         });
-        Button nPlay = (Button) findViewById(R.id.Now_Playing);
+        Button nPlay = (Button) findViewById(R.id.CoverArt);
         nPlay.setOnClickListener (new View.OnClickListener()
         {
             public void onClick(View v) {
@@ -60,7 +60,7 @@ public class MainActivity extends ActionBarActivity {
                 startActivity(i);
             }
         });
-        Button test = (Button) findViewById(R.id.Settings);
+        Button test = (Button) findViewById(R.id.play);
         test.setOnClickListener (new View.OnClickListener()
         {
             public void onClick(View v) {

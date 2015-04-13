@@ -70,7 +70,10 @@ public class MusicActivity extends Activity  {
         setContentView(R.layout.activity_music);
 
         intent = getIntent();
-        Long test = System.currentTimeMillis() - 3600000;
+        Long test = System.currentTimeMillis();
+        System.out.println("Test 1 -  " + test);
+        test = test - 3600000;
+        System.out.println("Test 2- " + test);
         run_history = new Run_HistoryActivity(test,this);
 
         mPlayer = new MediaPlayer();
