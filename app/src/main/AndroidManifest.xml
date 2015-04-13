@@ -61,6 +61,10 @@
             android:label="@string/title_activity_play_list"
             android:screenOrientation="portrait" >
         </activity>
+        <activity
+            android:name=".Run_HistoryActivity"
+            android:label="@string/title_activity_run__history" >
+        </activity>
     </application>
 
 </manifest>

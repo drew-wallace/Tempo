@@ -60,6 +60,14 @@ public class MainActivity extends ActionBarActivity {
                 startActivity(i);
             }
         });
+        Button test = (Button) findViewById(R.id.Settings);
+        test.setOnClickListener (new View.OnClickListener()
+        {
+            public void onClick(View v) {
+                Intent i = new Intent(getApplicationContext(),Run_HistoryActivity.class);
+                startActivity(i);
+            }
+        });
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

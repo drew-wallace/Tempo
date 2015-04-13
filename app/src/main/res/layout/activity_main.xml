@@ -48,7 +48,7 @@
         <Button
             android:layout_width="130dp"
             android:layout_height="130dp"
-            android:text="Settings"
+            android:text="Testing"
             android:id="@+id/Settings"
             android:layout_toStartOf="@+id/button11"
             android:layout_below="@+id/My_Playlists"
@@ -58,7 +58,7 @@
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
             android:background="#ffffffff"
-            android:visibility="invisible" />
+            android:visibility="visible" />
 
         <Button
             android:layout_width="wrap_content"

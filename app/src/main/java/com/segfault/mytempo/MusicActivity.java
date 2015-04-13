@@ -62,6 +62,7 @@ public class MusicActivity extends Activity  {
     private SensorManager mSensorManager;
     private Sensor mSensor;
     private TimerTestActivity stepCounter = null;
+    private Run_HistoryActivity run_history = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -69,6 +70,8 @@ public class MusicActivity extends Activity  {
         setContentView(R.layout.activity_music);
 
         intent = getIntent();
+        Long test = System.currentTimeMillis() - 3600000;
+        run_history = new Run_HistoryActivity(test,this);
 
         mPlayer = new MediaPlayer();
         mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -95,6 +98,7 @@ public class MusicActivity extends Activity  {
             public void onClick(View v) {
                 // TODO Auto-generated method stub
                 System.out.println("song skipped");
+
                 skipSong();
             }
         });
@@ -131,6 +135,7 @@ public class MusicActivity extends Activity  {
         genSongBtn.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
+                System.out.println("=====" + run_history.returnSteps());
                 //Creating the instance of PopupMenu
                 PopupMenu popup = new PopupMenu(MusicActivity.this, genSongBtn);
                 //Inflating the Popup using xml file
