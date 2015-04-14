@@ -105,7 +105,7 @@ public class MusicActivity extends Activity  {
                 skipSong();
             }
         });
-        genSongBtn = (Button) findViewById(R.id.button1);
+        //genSongBtn = (Button) findViewById(R.id.button1);
 
         if(intent.hasExtra("song"))
         {
@@ -134,7 +134,7 @@ public class MusicActivity extends Activity  {
     ////////////////five song selection//////////////
     public void firstSong()
     {
-
+        /*
         genSongBtn.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -194,9 +194,69 @@ public class MusicActivity extends Activity  {
                 popup.show(); //showing popup menu
             }
         }); //closing the setOnClickListener method
+        */
 
         new SeedTask().execute("http://24.124.68.225/5songs.php");
         setCounter();
+    }
+
+    private void genMenu()
+    {
+            System.out.println("=====" + run_history.returnSteps());
+            //Creating the instance of PopupMenu
+            Button anchorButton = (Button) findViewById(R.id.anchor);
+            PopupMenu popup = new PopupMenu(MusicActivity.this, anchorButton);
+            //Inflating the Popup using xml file
+            popup.getMenuInflater()
+                    .inflate(R.menu.popup_menu, popup.getMenu());
+
+            popup.getMenu().findItem(R.id.one).setTitle(songs[0][0]);
+            popup.getMenu().findItem(R.id.two).setTitle(songs[1][0]);
+            popup.getMenu().findItem(R.id.three).setTitle(songs[2][0]);
+            popup.getMenu().findItem(R.id.four).setTitle(songs[3][0]);
+            popup.getMenu().findItem(R.id.five).setTitle(songs[4][0]);
+            //registering popup with OnMenuItemClickListener
+            popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                public boolean onMenuItemClick(MenuItem item) {
+
+                    if(item.getTitle().toString().compareTo("RESET") == 0)
+                    {
+                        firstSong();
+                        //genSongBtn.setVisibility(View.INVISIBLE);
+                    }
+                    else {
+                        String songTitle = item.getTitle().toString();
+                        String songID = "";
+                        if (songTitle.compareTo(songs[0][0]) == 0) {
+                            songID = songs[0][1];
+                            cluster = songs[0][3];
+                        } else if (songTitle.compareTo(songs[1][0]) == 0) {
+                            songID = songs[1][1];
+                            cluster = songs[1][3];
+                        } else if (songTitle.compareTo(songs[2][0]) == 0) {
+                            songID = songs[2][1];
+                            cluster = songs[2][3];
+                        } else if (songTitle.compareTo(songs[3][0]) == 0) {
+                            songID = songs[3][1];
+                            cluster = songs[3][3];
+                        } else if (songTitle.compareTo(songs[4][0]) == 0) {
+                            songID = songs[4][1];
+                            cluster = songs[4][3];
+                        }
+                        new FirstSongTask().execute(songID);
+
+                        Toast.makeText(
+                                MusicActivity.this,
+                                "You Clicked : " + item.getTitle(),
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+
+                    return true;
+                }
+            });
+
+            popup.show(); //showing popup menu
     }
 
     ///////SKIP BUTTON FUNCTION////////////
@@ -377,11 +437,12 @@ public class MusicActivity extends Activity  {
                     System.out.println(songs[i][0] + " " + songs[i][1] + " " + songs[i][2] + " " + i +  "\n");
 
                 }
-                genSongBtn.setVisibility(View.VISIBLE);
+                //genSongBtn.setVisibility(View.VISIBLE);
+
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-
+            genMenu();
         }
     }
     ///////////////////////PLAY FIRST SONG///////////////////
@@ -530,7 +591,7 @@ public class MusicActivity extends Activity  {
             buttonPlay.setVisibility(View.VISIBLE);
             buttonStop.setVisibility(View.VISIBLE);
             buttonSkip.setVisibility(View.VISIBLE);
-            genSongBtn.setVisibility(View.INVISIBLE);
+            //genSongBtn.setVisibility(View.INVISIBLE);
             //System.out.println(stepCounter.returnSteps() + " " + stepCounter.returnStepsPerMin());
             setSong();
             }
@@ -560,7 +621,7 @@ public class MusicActivity extends Activity  {
             buttonPlay.setVisibility(View.VISIBLE);
             buttonStop.setVisibility(View.VISIBLE);
             buttonSkip.setVisibility(View.VISIBLE);
-            genSongBtn.setVisibility(View.INVISIBLE);
+            //genSongBtn.setVisibility(View.INVISIBLE);
             //System.out.println(stepCounter.returnSteps() + " " + stepCounter.returnStepsPerMin());
             setSong();
         }

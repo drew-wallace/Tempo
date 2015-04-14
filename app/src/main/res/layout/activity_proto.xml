@@ -9,61 +9,47 @@
     android:background="@color/background_material_dark">
 
     <Button
-        android:layout_width="130dp"
-        android:layout_height="130dp"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
         android:id="@+id/CoverArt"
-        android:layout_toStartOf="@+id/button11"
         android:layout_alignParentTop="true"
-        android:layout_marginBottom="5dp"
-        android:layout_toLeftOf="@+id/button11"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:background="@drawable/ic_notification" />
+        android:background="@drawable/ic_notification"
+        android:layout_margin="5dp"
+        android:layout_centerHorizontal="true" />
 
     <Button
-        android:layout_width="20dp"
-        android:layout_height="500dp"
-        android:id="@+id/button11"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:clickable="false"
-        android:background="@color/background_material_dark" />
-
-    <Button
-        android:layout_width="130dp"
-        android:layout_height="130dp"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
         android:id="@+id/play"
-        android:layout_marginTop="5dp"
-        android:layout_toLeftOf="@+id/button11"
         android:background="@android:drawable/ic_media_play"
         android:visibility="visible"
         android:layout_alignParentStart="true"
-        android:layout_below="@+id/CoverArt" />
+        android:layout_below="@+id/CoverArt"
+        android:layout_margin="5dp"
+        android:layout_centerHorizontal="true" />
 
     <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
         android:id="@+id/stop"
-        android:layout_toEndOf="@+id/button11"
         android:layout_alignBottom="@+id/CoverArt"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:layout_marginRight="5dp"
-        android:layout_toRightOf="@+id/button11"
         android:background="@drawable/stop"
-        android:layout_alignParentTop="true" />
+        android:layout_alignParentTop="true"
+        android:layout_margin="5dp"
+        android:layout_centerHorizontal="true" />
 
     <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
         android:id="@+id/skip"
-        android:layout_alignTop="@+id/play"
-        android:layout_toRightOf="@+id/button11"
-        android:layout_toEndOf="@+id/button11"
-        android:layout_alignBottom="@+id/play"
         android:background="@android:drawable/ic_media_next"
         android:visibility="visible"
-        android:layout_alignRight="@+id/stop"
-        android:layout_alignEnd="@+id/stop" />
+        android:layout_alignTop="@+id/play"
+        android:layout_alignStart="@+id/stop"
+        android:layout_margin="5dp" />
 
 </RelativeLayout>
