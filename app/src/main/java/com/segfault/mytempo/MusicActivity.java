@@ -4,11 +4,15 @@ import android.app.Activity;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompatSideChannelService;
@@ -17,6 +21,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -38,6 +43,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -47,6 +55,7 @@ public class MusicActivity extends Activity  {
     Button buttonPlay;
     Button buttonStop;
     Button buttonSkip;
+    ImageView imageCover;
     private TextView dur;
     int duration = 100000;
     float oSteps = 0,nSteps = 0,spm = 0;
@@ -58,6 +67,8 @@ public class MusicActivity extends Activity  {
     private JSONArray playlistJSON;
     int currentSong;
     boolean playListBool;
+    URL urlpic;
+    Bitmap image;
 
     private SensorManager mSensorManager;
     private Sensor mSensor;
@@ -78,6 +89,8 @@ public class MusicActivity extends Activity  {
 
         mPlayer = new MediaPlayer();
         mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+
+        imageCover = (ImageView) findViewById(R.id.CoverArt);
 
         buttonPlay = (Button) findViewById(R.id.play);
         buttonPlay.setOnClickListener(new OnClickListener() {
@@ -200,6 +213,18 @@ public class MusicActivity extends Activity  {
         setCounter();
     }
 
+    public Drawable LoadImageFromWebOperations(String urlPic) {
+        try {
+            InputStream is = (InputStream) new URL(urlPic).getContent();
+            System.out.println("STREAM URL "  + urlPic);
+            Drawable d = Drawable.createFromStream(is, "src name");
+            return d;
+        } catch (Exception e) {
+            System.out.println("you done goofed");
+            return null;
+        }
+    }
+
     private void genMenu()
     {
             System.out.println("=====" + run_history.returnSteps());
@@ -275,10 +300,12 @@ public class MusicActivity extends Activity  {
     public void nextPlayListSong()
     {
         try {
-            System.out.println("DAT HOLE PLAYLIST: " + playlistJSON.toString(3));
+            //System.out.println("DAT HOLE PLAYLIST: " + playlistJSON.toString(3));
             JSONObject nextSong = playlistJSON.getJSONObject(currentSong);
             currentSong = (currentSong + 1) % playlistJSON.length();
-            System.out.println("THA NEXT SONG TAH BE PLAID: " + nextSong.getString("title"));
+            //System.out.println("THA NEXT SONG TAH BE PLAID: " + nextSong.getString("title"));
+            //System.out.println("POOP FART BUTT CHEESE " + nextSong.getString("albumArtRef"));
+            new setCoverArtTask().execute(nextSong.getString("albumArtRef"));
             new playListSongTask().execute(nextSong.getString("id"));
         }
         catch (JSONException e)
@@ -561,14 +588,44 @@ public class MusicActivity extends Activity  {
         @Override
         protected void onPostExecute(String result)
         {
+            System.out.println("NEVER GONNA GIVE YOU UP " + result);
             parseNextSong(result);
         }
     }
+
+
+    private class setCoverArtTask extends AsyncTask<String, Void, Bitmap>
+    {
+        //@Override
+        protected Bitmap doInBackground(String... imageUrl)
+        {
+            try {
+                urlpic = new URL(imageUrl[0]);
+                image = BitmapFactory.decodeStream(urlpic.openConnection().getInputStream());
+            }
+            catch(MalformedURLException e)
+            {
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return image;
+        }
+
+        @Override
+        protected void onPostExecute(Bitmap result)
+        {
+            imageCover.setImageBitmap(result);
+        }
+    }
+
     private class playListSongTask extends AsyncTask<String, Void, String>
     {
         @Override
         protected String doInBackground(String... sid)
         {
+
             return getNextPlayListSong(sid[0]);
         }
 
@@ -591,6 +648,7 @@ public class MusicActivity extends Activity  {
             buttonPlay.setVisibility(View.VISIBLE);
             buttonStop.setVisibility(View.VISIBLE);
             buttonSkip.setVisibility(View.VISIBLE);
+           // new setCoverArtTask().execute(obj.getString("albumArtRef"));
             //genSongBtn.setVisibility(View.INVISIBLE);
             //System.out.println(stepCounter.returnSteps() + " " + stepCounter.returnStepsPerMin());
             setSong();
@@ -605,6 +663,7 @@ public class MusicActivity extends Activity  {
         try {
             JSONObject obj = new JSONObject(result);
             url = obj.getString("streamURL");
+            new setCoverArtTask().execute(obj.getString("albumArtRef"));
             //System.out.println(stepCounter.returnSteps() + " " + stepCounter.returnStepsPerMin());
             setSong();
         }
