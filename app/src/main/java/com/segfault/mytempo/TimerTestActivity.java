@@ -16,18 +16,10 @@ public class TimerTestActivity implements SensorEventListener {
 
     private boolean activityRunning;
     float oldSteps=0,newSteps = 0;
-    private int check = 0;
     private float stepsTaken = 0,stepsPerMin = 0;
 
     protected void onResume() {
         activityRunning = true;
-        /*Sensor countSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
-        if (countSensor != null) {
-            sensorManager.registerListener(this, countSensor, SensorManager.SENSOR_DELAY_UI);
-        } else {
-            Toast.makeText(this, "Count sensor not available!", Toast.LENGTH_LONG).show();
-        }
-        */
     }
     public TimerTestActivity()
     {
@@ -37,7 +29,6 @@ public class TimerTestActivity implements SensorEventListener {
     {
         if (countSensor != null) {
             activityRunning = true;
-            //sensorManager.registerListener(this, countSensor, SensorManager.SENSOR_DELAY_UI);
 
         } else {
             activityRunning = false;
@@ -47,36 +38,16 @@ public class TimerTestActivity implements SensorEventListener {
 
     protected void onPause() {
         activityRunning = false;
-        // if you unregister the last listener, the hardware will stop detecting step events
-//        sensorManager.unregisterListener(this);
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
         Sensor sensor = event.sensor;
         if (activityRunning) {
-
-            if(check == 0)
-            {
-                newSteps = event.values[0];
-                stepsPerMin = (newSteps-oldSteps)*4;
-                stepsTaken = newSteps - oldSteps;
-                //steps.setText(String.valueOf(stepsPerMin));
-                //count.setText(String.valueOf(stepsTaken));
-                System.out.println("N-Steps " + newSteps + "\n");
-                System.out.println("O-Steps " + oldSteps + "\n");
-                oldSteps = newSteps;
-                check = 1;
-            }
-
+                stepsTaken = event.values[0];
         }
 
     }
-    public void setCheck(int x)
-    {
-        check = x;
-    }
-
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
