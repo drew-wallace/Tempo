@@ -19,7 +19,7 @@
 
     <application
         android:allowBackup="true"
-        android:icon="R.drawable.ic_notification.png"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <meta-data
