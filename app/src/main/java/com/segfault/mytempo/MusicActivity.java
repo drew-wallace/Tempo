@@ -38,6 +38,8 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.*;
+import org.jsoup.Connection;
+import org.jsoup.Jsoup;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -72,7 +74,8 @@ public class MusicActivity extends Activity  {
     boolean playListBool;
     URL urlpic;
     Bitmap image;
-    Drawable image2;
+    TextView songTV;
+    String songTitle;
 
     private SensorManager mSensorManager;
     private Sensor mSensor;
@@ -94,6 +97,7 @@ public class MusicActivity extends Activity  {
         mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 
         imageCover = (ImageView) findViewById(R.id.CoverArt);
+        songTV = (TextView) findViewById(R.id.songTV);
 
         buttonPlay = (Button) findViewById(R.id.play);
         buttonPlay.setOnClickListener(new OnClickListener() {
@@ -167,7 +171,8 @@ public class MusicActivity extends Activity  {
     ////////////////five song selection//////////////
     public void firstSong()
     {
-        new SeedTask().execute("http://24.124.68.225/5songs.php");
+        new getSongsJSOUPTask().execute();
+        //new SeedTask().execute("http://24.124.68.225/5songs.php");
         setCounter();
     }
 
@@ -198,28 +203,34 @@ public class MusicActivity extends Activity  {
                         String songTitle = item.getTitle().toString();
                         String songID = "";
                         if (songTitle.compareTo(songs[0][0]) == 0) {
+                            songTitle = songs[0][0];
                             songID = songs[0][1];
                             cluster = songs[0][3];
                             artCover = songs[0][4];
                         } else if (songTitle.compareTo(songs[1][0]) == 0) {
+                            songTitle = songs[1][0];
                             songID = songs[1][1];
                             cluster = songs[1][3];
                             artCover = songs[1][4];
                         } else if (songTitle.compareTo(songs[2][0]) == 0) {
+                            songTitle = songs[2][0];
                             songID = songs[2][1];
                             cluster = songs[2][3];
                             artCover = songs[2][4];
                         } else if (songTitle.compareTo(songs[3][0]) == 0) {
+                            songTitle = songs[3][0];
                             songID = songs[3][1];
                             cluster = songs[3][3];
                             artCover = songs[3][4];
                         } else if (songTitle.compareTo(songs[4][0]) == 0) {
+                            songTitle = songs[4][0];
                             songID = songs[4][1];
                             cluster = songs[4][3];
                             artCover = songs[4][4];
                         }
                         new setCoverArtTask().execute(artCover);
-                        new FirstSongTask().execute(songID);
+                        new nextSongJSOUPTask().execute(songID);
+                        //new FirstSongTask().execute(songID);
 
                         Toast.makeText(
                                 MusicActivity.this,
@@ -576,6 +587,7 @@ public class MusicActivity extends Activity  {
         protected void onPostExecute(Bitmap result)
         {
             imageCover.setImageBitmap(result);
+            songTV.setText(songTitle);
         }
     }
 
@@ -615,10 +627,13 @@ public class MusicActivity extends Activity  {
     private void parseNextSong(String result)
     {
         try {
+
             JSONObject obj = new JSONObject(result);
             JSONObject song = new JSONObject(obj.getString("song"));
             artCover = song.getString("albumArtRef");
             url = obj.getString("streamURL");
+            songTitle = obj.getString("title");
+            System.out.println("TEST 1"+ obj);
             new setCoverArtTask().execute(artCover);
             setSong();
         }
@@ -640,5 +655,69 @@ public class MusicActivity extends Activity  {
         catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+    private class getSongsJSOUPTask extends AsyncTask<Void,Void,String>
+    {
+        String page;
+        protected String doInBackground(Void... sid)
+        {
+            Connection.Response res = null;
+            try {
+                page = Jsoup.connect("http://24.124.68.225/5songs.php").ignoreContentType(true).execute().body();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return page;
+        }
+        @Override
+        protected void onPostExecute(String result)
+        {
+            try {
+                JSONObject obj = new JSONObject(result);
+                JSONArray songJSON = obj.getJSONArray("choices");
+
+
+                for (int i = 0; i < songJSON.length(); i++) {
+                    JSONObject jsonobject = songJSON.getJSONObject(i);
+                    songs[i][0] = jsonobject.getString("title");
+                    songs[i][1] = jsonobject.getString("id");
+                    songs[i][2] = jsonobject.getString("artist");
+                    songs[i][3] = jsonobject.getString("cluster");
+                    songs[i][4] = jsonobject.getString("albumArtRef");
+                    System.out.println(songs[i][0] + " " + songs[i][1] + " " + songs[i][2] + " " + i +  "\n");
+
+                }
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            genMenu();
+        }
+
+    }
+
+
+    private class nextSongJSOUPTask extends AsyncTask<String,Void,String>
+    {
+        String page;
+        protected String doInBackground(String... sid)
+        {
+            Connection.Response res = null;
+            try {
+                page = Jsoup.connect("http://24.124.68.225/streamURL.php?sid=" + sid[0]).ignoreContentType(true).execute().body();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return page;
+        }
+        @Override
+        protected void onPostExecute(String result)
+        {
+            System.out.println("Test: " + result);
+            parseUrl(result);
+        }
+
     }
    }
