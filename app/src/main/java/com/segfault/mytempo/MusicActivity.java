@@ -75,7 +75,7 @@ public class MusicActivity extends Activity  {
     URL urlpic;
     Bitmap image;
     TextView songTV;
-    String songTitle;
+    String songName;
 
     private SensorManager mSensorManager;
     private Sensor mSensor;
@@ -97,7 +97,7 @@ public class MusicActivity extends Activity  {
         mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 
         imageCover = (ImageView) findViewById(R.id.CoverArt);
-        songTV = (TextView) findViewById(R.id.songTV);
+        songTV = (TextView) findViewById(R.id.songTextView);
 
         buttonPlay = (Button) findViewById(R.id.play);
         buttonPlay.setOnClickListener(new OnClickListener() {
@@ -171,8 +171,8 @@ public class MusicActivity extends Activity  {
     ////////////////five song selection//////////////
     public void firstSong()
     {
-        new getSongsJSOUPTask().execute();
-        //new SeedTask().execute("http://24.124.68.225/5songs.php");
+        //new getSongsJSOUPTask().execute();
+        new SeedTask().execute("http://24.124.68.225/5songs.php");
         setCounter();
     }
 
@@ -203,34 +203,34 @@ public class MusicActivity extends Activity  {
                         String songTitle = item.getTitle().toString();
                         String songID = "";
                         if (songTitle.compareTo(songs[0][0]) == 0) {
-                            songTitle = songs[0][0];
+                            songName = songs[0][0] + " - " +songs[0][2];
                             songID = songs[0][1];
                             cluster = songs[0][3];
                             artCover = songs[0][4];
                         } else if (songTitle.compareTo(songs[1][0]) == 0) {
-                            songTitle = songs[1][0];
+                            songName = songs[1][0] + " - " + songs[1][2];
                             songID = songs[1][1];
                             cluster = songs[1][3];
                             artCover = songs[1][4];
                         } else if (songTitle.compareTo(songs[2][0]) == 0) {
-                            songTitle = songs[2][0];
+                            songName = songs[2][0] + " - " + songs[2][2];
                             songID = songs[2][1];
                             cluster = songs[2][3];
                             artCover = songs[2][4];
                         } else if (songTitle.compareTo(songs[3][0]) == 0) {
-                            songTitle = songs[3][0];
+                            songName = songs[3][0] + " - " + songs[3][2];
                             songID = songs[3][1];
                             cluster = songs[3][3];
                             artCover = songs[3][4];
                         } else if (songTitle.compareTo(songs[4][0]) == 0) {
-                            songTitle = songs[4][0];
+                            songName = songs[4][0] + " - " + songs[4][2];
                             songID = songs[4][1];
                             cluster = songs[4][3];
                             artCover = songs[4][4];
                         }
                         new setCoverArtTask().execute(artCover);
-                        new nextSongJSOUPTask().execute(songID);
-                        //new FirstSongTask().execute(songID);
+                        //new nextSongJSOUPTask().execute(songID);
+                        new FirstSongTask().execute(songID);
 
                         Toast.makeText(
                                 MusicActivity.this,
@@ -265,7 +265,7 @@ public class MusicActivity extends Activity  {
             JSONObject nextSong = playlistJSON.getJSONObject(currentSong);
             currentSong = (currentSong + 1) % playlistJSON.length();
             new setCoverArtTask().execute(nextSong.getString("albumArtRef"));
-            new playListSongTask().execute(nextSong.getString("id"));
+            new playListSongTask().execute(nextSong.getString("id"),nextSong.getString("title"),nextSong.getString("artist"));
         }
         catch (JSONException e)
         {
@@ -348,7 +348,7 @@ public class MusicActivity extends Activity  {
             mPlayer.release();
             mPlayer = null;
         }
-        if(timer != null)
+        if(playListBool == false)
         {
             timer.cancel();
         }
@@ -361,7 +361,7 @@ public class MusicActivity extends Activity  {
     @Override
     protected void onStop() {
         super.onStop();
-        if(timer != null) {
+        if(playListBool == false) {
             timer.cancel();
         }
     }
@@ -434,7 +434,7 @@ public class MusicActivity extends Activity  {
                     songs[i][2] = jsonobject.getString("artist");
                     songs[i][3] = jsonobject.getString("cluster");
                     songs[i][4] = jsonobject.getString("albumArtRef");
-                    System.out.println(songs[i][0] + " " + songs[i][1] + " " + songs[i][2] + " " + i +  "\n");
+                    System.out.println(songs[i][0] + " " + songs[i][1] + " " + songs[i][2] + " " + songs[i][3] + " " + songs[i][4] + i +  "\n");
 
                 }
 
@@ -587,7 +587,8 @@ public class MusicActivity extends Activity  {
         protected void onPostExecute(Bitmap result)
         {
             imageCover.setImageBitmap(result);
-            songTV.setText(songTitle);
+            songTV.setText("PLAYING: " + songName);
+            songTV.setHorizontallyScrolling(true);
         }
     }
 
@@ -596,6 +597,7 @@ public class MusicActivity extends Activity  {
         @Override
         protected String doInBackground(String... sid)
         {
+            songName = sid[1] + " - " + sid[2];
             return getNextPlayListSong(sid[0]);
         }
 
@@ -614,9 +616,9 @@ public class MusicActivity extends Activity  {
             JSONObject obj = new JSONObject(result);
             url = obj.getString("streamURL");
             pid = obj.getString("pid");
-            buttonPlay.setVisibility(View.VISIBLE);
-            buttonStop.setVisibility(View.VISIBLE);
-            buttonSkip.setVisibility(View.VISIBLE);
+            //buttonPlay.setVisibility(View.VISIBLE);
+            //buttonStop.setVisibility(View.VISIBLE);
+            //buttonSkip.setVisibility(View.VISIBLE);
             setSong();
             }
          catch (JSONException e) {
@@ -632,8 +634,8 @@ public class MusicActivity extends Activity  {
             JSONObject song = new JSONObject(obj.getString("song"));
             artCover = song.getString("albumArtRef");
             url = obj.getString("streamURL");
-            songTitle = obj.getString("title");
-            System.out.println("TEST 1"+ obj);
+            songName = song.getString("title") + " " + song.getString("artist");
+
             new setCoverArtTask().execute(artCover);
             setSong();
         }
@@ -647,9 +649,10 @@ public class MusicActivity extends Activity  {
         try {
             JSONObject obj = new JSONObject(result);
             url = obj.getString("streamURL");
-            buttonPlay.setVisibility(View.VISIBLE);
-            buttonStop.setVisibility(View.VISIBLE);
-            buttonSkip.setVisibility(View.VISIBLE);
+            System.out.println(obj);
+            //buttonPlay.setVisibility(View.VISIBLE);
+            //buttonStop.setVisibility(View.VISIBLE);
+            //buttonSkip.setVisibility(View.VISIBLE);
             setSong();
         }
         catch (JSONException e) {
