@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.view.View;
 
@@ -56,12 +57,15 @@ public class HistoryActivity extends ActionBarActivity {
     public static final String TAG = "BasicHistoryApi";
     private static final int REQUEST_OAUTH = 1;
     private static final String DATE_FORMAT = "yyyy.MM.dd HH:mm:ss";
-    private String tmp,tmp2,tmp3,tmp4;
+    private String tmp,tmp2;
     Timer timer = new Timer();
-    TextView stepsText,stepsText2,distText,distText2;
+    TextView stepsText,stepsText2;
+    RelativeLayout.LayoutParams layoutParams,layoutParams2;
+    RelativeLayout rLayout;
     int counter;
-    int i;
-    FileOutputStream outputStream;
+    int[][] stepsTaken;
+    int i,j;
+
 
 
     /**
@@ -85,18 +89,11 @@ public class HistoryActivity extends ActionBarActivity {
         if (savedInstanceState != null) {
             authInProgress = savedInstanceState.getBoolean(AUTH_PENDING);
         }
-
-        tmp = "0";
-        tmp2 = "0";
-        tmp3 = "0";
-        tmp4 = "0";
-        stepsText = (TextView) findViewById(R.id.todaySteps);
-        stepsText2 = (TextView)findViewById(R.id.yestSteps);
-        distText = (TextView) findViewById(R.id.todayDist);
-        distText2 = (TextView) findViewById(R.id.yestDist);
-        startTimer();
+        stepsTaken = new int[7][3];
+        //startTimer();
+        rLayout = (RelativeLayout) findViewById(R.id.hisLayout);
         counter = 0;
-        i = 1;
+        i = 0;
 
         buildFitnessClient();
     }
@@ -213,11 +210,11 @@ public class HistoryActivity extends ActionBarActivity {
      *  An example of an asynchronous call using a callback can be found in the example
      *  on deleting data below.
      */
-    private class InsertAndVerifyDataTask extends AsyncTask<Void, Void, Void> {
-        protected Void doInBackground(Void... params) {
+    private class InsertAndVerifyDataTask extends AsyncTask<Void, Void, String> {
+        protected String doInBackground(Void... params) {
+            i = 0;j = 6;
             //First, create a new dataset and insertion request.
-            DataSet dataSet = insertFitnessData();
-            DataSet dataSet2 = insertFitnessData2();
+            /*DataSet dataSet = insertFitnessData();
             // [START insert_dataset]
             // Then, invoke the History API to insert the data and await the result, which is
             // possible here because of the {@link AsyncTask}. Always include a timeout when calling
@@ -227,19 +224,16 @@ public class HistoryActivity extends ActionBarActivity {
             com.google.android.gms.common.api.Status insertStatus =
                     Fitness.HistoryApi.insertData(mClient, dataSet)
                             .await(1, TimeUnit.MINUTES);
-            com.google.android.gms.common.api.Status insertStatus2 =
-                    Fitness.HistoryApi.insertData(mClient, dataSet2)
-                            .await(1, TimeUnit.MINUTES);
 
             // Before querying the data, check to see if the insertion succeeded.
-            if (!insertStatus.isSuccess() || !insertStatus2.isSuccess()) {
+            if (!insertStatus.isSuccess()) {
                 Log.i(TAG, "There was a problem inserting the dataset.");
                 return null;
             }
 
             // At this point, the data has been inserted and can be read.
             Log.i(TAG, "Data insert was successful!");
-            // [END insert_dataset]
+            // [END insert_dataset]*/
 
             // Begin by creating the query.
             DataReadRequest readRequest = queryFitnessData();
@@ -255,7 +249,12 @@ public class HistoryActivity extends ActionBarActivity {
             // In general, logging fitness information should be avoided for privacy reasons.
             printData(dataReadResult);
             //deleteData();
-            return null;
+            return "done";
+        }
+        protected void onPostExecute(String result)
+        {
+            genStepText();
+            //return null;
         }
     }
 
@@ -295,39 +294,6 @@ public class HistoryActivity extends ActionBarActivity {
 
         return dataSet;
     }
-    private DataSet insertFitnessData2() {
-        Log.i(TAG, "Creating a new data insert request");
-
-        // [START build_insert_data_request]
-        // Set a start and end time for our data, using a start time of 1 hour before this moment.
-        Calendar cal = Calendar.getInstance();
-        Date now = new Date();
-        cal.setTime(now);
-        long endTime = cal.getTimeInMillis();
-        cal.add(Calendar.HOUR_OF_DAY, -1);
-        long startTime = cal.getTimeInMillis();
-
-        // Create a data source
-        DataSource dataSource = new DataSource.Builder()
-                .setAppPackageName(this)
-                .setDataType(DataType.TYPE_DISTANCE_DELTA)
-                .setName(TAG + " - step count")
-                .setType(DataSource.TYPE_RAW)
-                .build();
-
-        // Create a data set
-        float distCountDelta = 10;
-        DataSet dataSet = DataSet.create(dataSource);
-        // For each data point, specify a start time, end time, and the data value -- in this case,
-        // the number of new steps.
-        DataPoint dataPoint = dataSet.createDataPoint()
-                .setTimeInterval(startTime, endTime, TimeUnit.MILLISECONDS);
-        dataPoint.getValue(Field.FIELD_DISTANCE).setFloat(distCountDelta);
-        dataSet.add(dataPoint);
-        // [END build_insert_data_request]
-
-        return dataSet;
-    }
     /**
      * Return a {@link DataReadRequest} for all step count changes in the past week.
      */
@@ -344,7 +310,7 @@ public class HistoryActivity extends ActionBarActivity {
         System.out.println(year+ " "+month+" "+day);
         cal.set(year,month,day+1,0,0);
         long endTime = cal.getTimeInMillis();
-        cal.add(Calendar.DAY_OF_WEEK, -2);
+        cal.add(Calendar.DAY_OF_WEEK, -7);
         long startTime = cal.getTimeInMillis();
 
         SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
@@ -357,7 +323,6 @@ public class HistoryActivity extends ActionBarActivity {
                 // In this example, it's very unlikely that the request is for several hundred
                 // datapoints each consisting of a few steps and a timestamp.  The more likely
                 // scenario is wanting to see how many steps were walked per day, for 7 days.
-                .aggregate(DataType.TYPE_DISTANCE_DELTA, DataType.AGGREGATE_DISTANCE_DELTA)
                 .aggregate(DataType.TYPE_STEP_COUNT_DELTA, DataType.AGGREGATE_STEP_COUNT_DELTA)
                         // Analogous to a "Group By" in SQL, defines how data should be aggregated.
                         // bucketByTime allows for a time span, whereas bucketBySession would allow
@@ -388,7 +353,7 @@ public class HistoryActivity extends ActionBarActivity {
                 List<DataSet> dataSets = bucket.getDataSets();
                 for (DataSet dataSet : dataSets) {
                     dumpDataSet(dataSet);
-                }
+                } RelativeLayout rLayout;
             }
         } else if (dataReadResult.getDataSets().size() > 0) {
             Log.i(TAG, "Number of returned DataSets is: "
@@ -406,55 +371,27 @@ public class HistoryActivity extends ActionBarActivity {
     private void dumpDataSet(DataSet dataSet) {
         Log.i(TAG, "Data returned for Data type: " + dataSet.getDataType().getName());
         SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
+        Calendar cal = Calendar.getInstance();
 
-        System.out.println("          asdjkl");
+
         for (DataPoint dp : dataSet.getDataPoints()) {
-
-            if(i%2 == 1)
-            {
-                tmp2 = tmp;
-                System.out.println("          asd");
-            }
-            else {
-                tmp4 = tmp3;
-                System.out.println("          jkl");
-            }
             System.out.println("             " + i);
             Log.i(TAG, "Data point:");
             Log.i(TAG, "\tType: " + dp.getDataType().getName());
             Log.i(TAG, "\tStart: " + dateFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS)));
             Log.i(TAG, "\tEnd: " + dateFormat.format(dp.getEndTime(TimeUnit.MILLISECONDS)));
+            stepsTaken[i][1] = cal.get(Calendar.DAY_OF_MONTH) - j;
+            stepsTaken[i][2] = cal.get(Calendar.MONTH);
             for (Field field : dp.getDataType().getFields()) {
                 Log.i(TAG, "\tField: " + field.getName() +
                         " Value: " + dp.getValue(field));
-                System.out.println("blah " + i);
-                if(i%2 == 1)
-                {
-                    tmp = "" + dp.getValue(field);
-                }
-                else
-                {
-                    tmp3 = "" + dp.getValue(field);
-                }
-                i++;
+                stepsTaken[i][0] = Integer.parseInt("" + dp.getValue(field));
             }
+            i++;
+            j--;
         }
     }
-    // [END parse_dataset]
-    /*private void printTxt()
-    {
-        String tmp3 = tmp2.substring(0,tmp2.length());
-        double value = Double.parseDouble(tmp3);
-        spm = "Steps Per Minute " + String.valueOf(value/1440);
-        /*TextView stepsText = (TextView) findViewById(R.id.stepsTxt);
-        stepsText.setText(tmp);
-        TextView startText = (TextView) findViewById(R.id.stTxt);
-        startText.setText(start);
-        TextView endText = (TextView) findViewById(R.id.etTxt);
-        endText.setText(end);
-        TextView spmText = (TextView) findViewById(R.id.sPerMin);
-        spmText.setText(spm);
-    }*/
+
     protected void startTimer() {
         //isTimerRunning = true;
         timer.scheduleAtFixedRate(new TimerTask() {
@@ -470,10 +407,30 @@ public class HistoryActivity extends ActionBarActivity {
         public void handleMessage(Message msg) {
             stepsText.setText(tmp);//today
             stepsText2.setText(tmp2);//tomorrow
-            distText.setText(tmp3);
-            distText2.setText(tmp4);
         }
     };
+    private void genStepText()
+    {
+        int y = 1;
+        for(int x = 6;x >= 0;x--)
+        {
+            if(stepsTaken[x][0] != 0) {
+                System.out.println("STEPS TAKEN: " + stepsTaken[x]);
+                makeText(x,y);
+            }
+            y++;
+        }
+    }
+    private void makeText(int i,int y)
+    {
+        stepsText = new TextView(this);
+        stepsText.setText(stepsTaken[i][2] + "/" + stepsTaken[i][1] + " " + stepsTaken[i][0]);
+        stepsText.setTextSize(22);
+        layoutParams = new RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        layoutParams.setMargins(0, 150*y, 0, 200);
+        rLayout.addView(stepsText,layoutParams);
+    }
 
     /**
      * Delete a {@link DataSet} from the History API. In this example, we delete all
@@ -538,10 +495,4 @@ public class HistoryActivity extends ActionBarActivity {
 
         return super.onOptionsItemSelected(item);
     }
-    public void saveToDataBase()
-    {
-
-    }
-
-
 }

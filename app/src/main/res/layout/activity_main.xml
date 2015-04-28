@@ -58,7 +58,7 @@
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
             android:background="#ffffffff"
-            android:visibility="visible" />
+            android:visibility="invisible" />
 
         <Button
             android:layout_width="wrap_content"
