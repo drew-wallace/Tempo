@@ -1,22 +1,17 @@
 package com.segfault.mytempo;
 
-import android.app.Activity;
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
-import android.os.Bundle;
-import android.widget.TextView;
 import android.widget.Toast;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class TimerTestActivity implements SensorEventListener {
 
     private boolean activityRunning;
     float oldSteps=0,newSteps = 0;
     private float stepsTaken = 0,stepsPerMin = 0;
+    private float initial = 0;
 
     protected void onResume() {
         activityRunning = true;
@@ -43,8 +38,11 @@ public class TimerTestActivity implements SensorEventListener {
     @Override
     public void onSensorChanged(SensorEvent event) {
         Sensor sensor = event.sensor;
+        if(initial == 0){
+            initial = event.values[0];
+        }
         if (activityRunning) {
-                stepsTaken = event.values[0];
+                stepsTaken = event.values[0] - initial;
         }
 
     }

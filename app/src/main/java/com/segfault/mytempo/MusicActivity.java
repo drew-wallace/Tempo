@@ -1,23 +1,16 @@
 package com.segfault.mytempo;
 
 import android.app.Activity;
-import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentSender;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.NotificationCompatSideChannelService;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -25,7 +18,6 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
-import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -44,21 +36,13 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MusicActivity extends Activity {
@@ -337,6 +321,7 @@ public class MusicActivity extends Activity {
         if (mPlayer != null) {
             mPlayer.release();
             mPlayer = null;
+            //observer.stop();
         }
         if (playListBool == false) {
             timer.cancel();
@@ -563,7 +548,6 @@ public class MusicActivity extends Activity {
                     image = BitmapFactory.decodeStream(urlpic.openConnection().getInputStream());
                 } else {
                     image = BitmapFactory.decodeResource(getResources(), R.drawable.ic_notification);
-                    //(R.drawable.ic_notification);
                 }
             } catch (MalformedURLException e) {
 
