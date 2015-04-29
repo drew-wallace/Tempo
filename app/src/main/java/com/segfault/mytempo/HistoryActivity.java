@@ -53,6 +53,7 @@ public class HistoryActivity extends ActionBarActivity {
     int counter;
     int[][] stepsTaken;
     int i,j;
+    DataSource dataSource = null;
 
     /**
      *  Track whether an authorization activity is stacking over the current activity, i.e. when
@@ -258,7 +259,7 @@ public class HistoryActivity extends ActionBarActivity {
         long startTime = cal.getTimeInMillis();
 
         // Create a data source
-        DataSource dataSource = new DataSource.Builder()
+        dataSource = new DataSource.Builder()
                 .setAppPackageName(this.getPackageName())
                 .setDataType(DataType.TYPE_STEP_COUNT_DELTA)
                 .setName(TAG + " - step count")
@@ -266,7 +267,7 @@ public class HistoryActivity extends ActionBarActivity {
                 .build();
 
         // Create a data set
-        int stepCountDelta = 1000;
+        int stepCountDelta = 0;
         DataSet dataSet = DataSet.create(dataSource);
         // For each data point, specify a start time, end time, and the data value -- in this case,
         // the number of new steps.

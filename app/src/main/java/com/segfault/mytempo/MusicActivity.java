@@ -109,10 +109,7 @@ public class MusicActivity extends Activity {
         buttonStop.setOnClickListener(new OnClickListener() {
 
             public void onClick(View v) {
-                if (mPlayer != null && mPlayer.isPlaying()) {
-                    mPlayer.stop();
-                    mPlayer.reset();
-                }
+               onBackPressed();
             }
         });
 
@@ -301,6 +298,25 @@ public class MusicActivity extends Activity {
         observer = new MediaObserver();
         new Thread(observer).start();
         progress.setMax(mPlayer.getDuration());
+
+        progress.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            int progressChanged = 0;
+
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser){
+                progressChanged = progress;
+                mPlayer.seekTo(progressChanged);
+            }
+
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                // TODO Auto-generated method stub
+            }
+
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                //Toast.makeText(SeekbarActivity.this,"seek bar progress:"+progressChanged,
+                        //Toast.LENGTH_SHORT).show();
+            }
+        });
+
         mPlayer.setOnCompletionListener(new OnCompletionListener() {
             public void onCompletion(MediaPlayer mp) {
                 mp.reset();
@@ -697,10 +713,11 @@ public class MusicActivity extends Activity {
 
         @Override
         public void run() {
-            while (!stop.get()) {
+            while (!stop.get() && mPlayer != null) {
                 progress.setProgress(mPlayer.getCurrentPosition());
+
                 try {
-                    Thread.sleep(200);
+                    Thread.sleep(750);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
