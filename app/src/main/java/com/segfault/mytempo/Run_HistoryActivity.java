@@ -98,7 +98,7 @@ public class Run_HistoryActivity extends ActionBarActivity {
         // Create the Google API Client
         System.out.println("build fitness client");
         mClient = new GoogleApiClient.Builder(this.context)
-                .addApi(Fitness.API)
+                .addApi(Fitness.HISTORY_API)
                 .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
                 .addConnectionCallbacks(
                         new GoogleApiClient.ConnectionCallbacks() {

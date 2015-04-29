@@ -25,6 +25,8 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
+import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -57,17 +59,18 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-public class MusicActivity extends Activity  {
+public class MusicActivity extends Activity {
 
     private MediaPlayer mPlayer;
     Button buttonPlay, buttonStop, buttonSkip;
     ImageView imageCover;
-    int duration = 100000,playing = 1;
-    float oSteps = 0,nSteps = 0,spm = 0;
+    int duration = 100000, playing = 1;
+    float oSteps = 0, nSteps = 0, spm = 0;
     Timer timer = new Timer();
     private String[][] songs;
-    String url = "",pid,cluster,artCover;
+    String url = "", pid, cluster, artCover;
     Intent intent;
     private JSONArray playlistJSON;
     int currentSong;
@@ -76,10 +79,12 @@ public class MusicActivity extends Activity  {
     Bitmap image;
     TextView songTV;
     String songName;
+    SeekBar progress;
 
     private SensorManager mSensorManager;
     private Sensor mSensor;
     private TimerTestActivity stepCounter = null;
+    private MediaObserver observer = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -95,6 +100,7 @@ public class MusicActivity extends Activity  {
 
         mPlayer = new MediaPlayer();
         mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        progress = (SeekBar) findViewById(R.id.progressBar);
 
         imageCover = (ImageView) findViewById(R.id.CoverArt);
         songTV = (TextView) findViewById(R.id.songTextView);
@@ -102,15 +108,12 @@ public class MusicActivity extends Activity  {
         buttonPlay = (Button) findViewById(R.id.play);
         buttonPlay.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
-              if(playing == 0)
-                {
+                if (playing == 0) {
                     playing = 1;
                     mPlayer.start();
                     buttonPlay.setBackgroundResource(android.R.drawable.ic_media_pause);
 
-                }
-                else
-                {
+                } else {
                     playing = 0;
                     mPlayer.pause();
                     buttonPlay.setBackgroundResource(android.R.drawable.ic_media_play);
@@ -122,7 +125,7 @@ public class MusicActivity extends Activity  {
         buttonStop.setOnClickListener(new OnClickListener() {
 
             public void onClick(View v) {
-                if(mPlayer!=null && mPlayer.isPlaying()){
+                if (mPlayer != null && mPlayer.isPlaying()) {
                     mPlayer.stop();
                     mPlayer.reset();
                 }
@@ -134,8 +137,7 @@ public class MusicActivity extends Activity  {
 
             public void onClick(View v) {
                 System.out.println("song skipped");
-               if(playing == 0)
-                {
+                if (playing == 0) {
                     playing = 1;
                     buttonPlay.setBackgroundResource(android.R.drawable.ic_media_pause);
 
@@ -144,8 +146,7 @@ public class MusicActivity extends Activity  {
             }
         });
 
-        if(intent.hasExtra("song"))
-        {
+        if (intent.hasExtra("song")) {
             playListBool = true;
             System.out.println("INTENT: " + intent.getExtras().getString("playlist"));
             try {
@@ -158,9 +159,7 @@ public class MusicActivity extends Activity  {
                 e.printStackTrace();
             }
 
-        }
-        else
-        {
+        } else {
             System.out.println("NO INTENT");
             playListBool = false;
             songs = new String[5][5];
@@ -169,125 +168,115 @@ public class MusicActivity extends Activity  {
     }
 
     ////////////////five song selection//////////////
-    public void firstSong()
-    {
+    public void firstSong() {
         //new getSongsJSOUPTask().execute();
         new SeedTask().execute("http://24.124.68.225/5songs.php");
         setCounter();
     }
 
-    private void genMenu()
-    {
-            //Creating the instance of PopupMenu
-            Button anchorButton = (Button) findViewById(R.id.anchor);
-            PopupMenu popup = new PopupMenu(MusicActivity.this, anchorButton);
-            //Inflating the Popup using xml file
-            popup.getMenuInflater()
-                    .inflate(R.menu.popup_menu, popup.getMenu());
+    private void genMenu() {
+        //Creating the instance of PopupMenu
+        Button anchorButton = (Button) findViewById(R.id.anchor);
+        PopupMenu popup = new PopupMenu(MusicActivity.this, anchorButton);
+        //Inflating the Popup using xml file
+        popup.getMenuInflater()
+                .inflate(R.menu.popup_menu, popup.getMenu());
 
-            popup.getMenu().findItem(R.id.one).setTitle(songs[0][0]);
-            popup.getMenu().findItem(R.id.two).setTitle(songs[1][0]);
-            popup.getMenu().findItem(R.id.three).setTitle(songs[2][0]);
-            popup.getMenu().findItem(R.id.four).setTitle(songs[3][0]);
-            popup.getMenu().findItem(R.id.five).setTitle(songs[4][0]);
-            //registering popup with OnMenuItemClickListener
-            popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                public boolean onMenuItemClick(MenuItem item) {
+        popup.getMenu().findItem(R.id.one).setTitle(songs[0][0]);
+        popup.getMenu().findItem(R.id.two).setTitle(songs[1][0]);
+        popup.getMenu().findItem(R.id.three).setTitle(songs[2][0]);
+        popup.getMenu().findItem(R.id.four).setTitle(songs[3][0]);
+        popup.getMenu().findItem(R.id.five).setTitle(songs[4][0]);
+        //registering popup with OnMenuItemClickListener
+        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            public boolean onMenuItemClick(MenuItem item) {
 
-                    if(item.getTitle().toString().compareTo("RESET") == 0)
-                    {
-                        firstSong();
-                        //genSongBtn.setVisibility(View.INVISIBLE);
+                if (item.getTitle().toString().compareTo("RESET") == 0) {
+                    firstSong();
+                    //genSongBtn.setVisibility(View.INVISIBLE);
+                } else {
+                    String songTitle = item.getTitle().toString();
+                    String songID = "";
+                    if (songTitle.compareTo(songs[0][0]) == 0) {
+                        songName = songs[0][0] + " - " + songs[0][2];
+                        songID = songs[0][1];
+                        cluster = songs[0][3];
+                        artCover = songs[0][4];
+                    } else if (songTitle.compareTo(songs[1][0]) == 0) {
+                        songName = songs[1][0] + " - " + songs[1][2];
+                        songID = songs[1][1];
+                        cluster = songs[1][3];
+                        artCover = songs[1][4];
+                    } else if (songTitle.compareTo(songs[2][0]) == 0) {
+                        songName = songs[2][0] + " - " + songs[2][2];
+                        songID = songs[2][1];
+                        cluster = songs[2][3];
+                        artCover = songs[2][4];
+                    } else if (songTitle.compareTo(songs[3][0]) == 0) {
+                        songName = songs[3][0] + " - " + songs[3][2];
+                        songID = songs[3][1];
+                        cluster = songs[3][3];
+                        artCover = songs[3][4];
+                    } else if (songTitle.compareTo(songs[4][0]) == 0) {
+                        songName = songs[4][0] + " - " + songs[4][2];
+                        songID = songs[4][1];
+                        cluster = songs[4][3];
+                        artCover = songs[4][4];
                     }
-                    else {
-                        String songTitle = item.getTitle().toString();
-                        String songID = "";
-                        if (songTitle.compareTo(songs[0][0]) == 0) {
-                            songName = songs[0][0] + " - " +songs[0][2];
-                            songID = songs[0][1];
-                            cluster = songs[0][3];
-                            artCover = songs[0][4];
-                        } else if (songTitle.compareTo(songs[1][0]) == 0) {
-                            songName = songs[1][0] + " - " + songs[1][2];
-                            songID = songs[1][1];
-                            cluster = songs[1][3];
-                            artCover = songs[1][4];
-                        } else if (songTitle.compareTo(songs[2][0]) == 0) {
-                            songName = songs[2][0] + " - " + songs[2][2];
-                            songID = songs[2][1];
-                            cluster = songs[2][3];
-                            artCover = songs[2][4];
-                        } else if (songTitle.compareTo(songs[3][0]) == 0) {
-                            songName = songs[3][0] + " - " + songs[3][2];
-                            songID = songs[3][1];
-                            cluster = songs[3][3];
-                            artCover = songs[3][4];
-                        } else if (songTitle.compareTo(songs[4][0]) == 0) {
-                            songName = songs[4][0] + " - " + songs[4][2];
-                            songID = songs[4][1];
-                            cluster = songs[4][3];
-                            artCover = songs[4][4];
-                        }
-                        new setCoverArtTask().execute(artCover);
-                        //new nextSongJSOUPTask().execute(songID);
-                        new FirstSongTask().execute(songID);
+                    new setCoverArtTask().execute(artCover);
+                    //new nextSongJSOUPTask().execute(songID);
+                    new FirstSongTask().execute(songID);
 
-                        Toast.makeText(
-                                MusicActivity.this,
-                                "You Clicked : " + item.getTitle(),
-                                Toast.LENGTH_SHORT
-                        ).show();
-                    }
-
-                    return true;
+                    Toast.makeText(
+                            MusicActivity.this,
+                            "You Clicked : " + item.getTitle(),
+                            Toast.LENGTH_SHORT
+                    ).show();
                 }
-            });
 
-            popup.show(); //showing popup menu
+                return true;
+            }
+        });
+
+        popup.show(); //showing popup menu
     }
 
     ///////SKIP BUTTON FUNCTION////////////
-    public void skipSong()
-    {
+    public void skipSong() {
         mPlayer.reset();
-        if(playListBool == false) {
+        if (playListBool == false) {
             nextSong();
-        }
-        else
-        {
+        } else {
             nextPlayListSong();
         }
     }
+
     ///////Plays next in playlist/////////
-    public void nextPlayListSong()
-    {
+    public void nextPlayListSong() {
         try {
             JSONObject nextSong = playlistJSON.getJSONObject(currentSong);
             currentSong = (currentSong + 1) % playlistJSON.length();
             new setCoverArtTask().execute(nextSong.getString("albumArtRef"));
-            new playListSongTask().execute(nextSong.getString("id"),nextSong.getString("title"),nextSong.getString("artist"));
-        }
-        catch (JSONException e)
-        {
+            new playListSongTask().execute(nextSong.getString("id"), nextSong.getString("title"), nextSong.getString("artist"));
+        } catch (JSONException e) {
             e.printStackTrace();
         }
     }
+
     /////////next song from generated songs/////
-    public void nextSong()
-    {
+    public void nextSong() {
         System.out.println("http://24.124.68.225/nextSong.php?pid=" + pid + "&bpm=" + spm + "&cluster=" + cluster);
         new nextSongTask().execute("http://24.124.68.225/nextSong.php?pid=" + pid + "&bpm=" + spm + "&cluster=" + cluster);
     }
 
     //////Intializes counter/////////////
-    public void setCounter()
-    {
+    public void setCounter() {
         stepCounter = new TimerTestActivity();
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER );
-        mSensorManager.registerListener(stepCounter,mSensor,SensorManager.SENSOR_DELAY_UI);
+        mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
+        mSensorManager.registerListener(stepCounter, mSensor, SensorManager.SENSOR_DELAY_UI);
         stepCounter.testCounter(mSensor, this);
-        if(stepCounter != null) {
+        if (stepCounter != null) {
             if (stepCounter.countingSteps() == true) {
                 timeDelay();
             } else {
@@ -298,8 +287,7 @@ public class MusicActivity extends Activity  {
     }
 
     ///////sets song for media player////////////
-    public void setSong()
-    {
+    public void setSong() {
         try {
             mPlayer.setDataSource(url);
         } catch (IllegalArgumentException e) {
@@ -313,7 +301,7 @@ public class MusicActivity extends Activity  {
         }
         try {
             mPlayer.prepare();
-            duration =  mPlayer.getDuration();
+            duration = mPlayer.getDuration();
             playMusic();
         } catch (IllegalStateException e) {
             //Toast.makeText(getApplicationContext(), "You might not set the URI correctly!", Toast.LENGTH_LONG).show();
@@ -321,19 +309,21 @@ public class MusicActivity extends Activity  {
             //Toast.makeText(getApplicationContext(), "You might not set the URI correctly!", Toast.LENGTH_LONG).show();
         }
     }
+
     ///////starts media player/////////
-    public void playMusic()
-    {
+    public void playMusic() {
         playing = 1;
         mPlayer.start();
+        observer = new MediaObserver();
+        new Thread(observer).start();
+        progress.setMax(mPlayer.getDuration());
         mPlayer.setOnCompletionListener(new OnCompletionListener() {
             public void onCompletion(MediaPlayer mp) {
                 mp.reset();
-                if(playListBool == false) {
+                observer.stop();
+                if (playListBool == false) {
                     nextSong();
-                }
-                else
-                {
+                } else {
                     nextPlayListSong();
                 }
             }
@@ -348,11 +338,11 @@ public class MusicActivity extends Activity  {
             mPlayer.release();
             mPlayer = null;
         }
-        if(playListBool == false)
-        {
+        if (playListBool == false) {
             timer.cancel();
         }
     }
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -361,7 +351,7 @@ public class MusicActivity extends Activity  {
     @Override
     protected void onStop() {
         super.onStop();
-        if(playListBool == false) {
+        if (playListBool == false) {
             timer.cancel();
         }
     }
@@ -369,42 +359,41 @@ public class MusicActivity extends Activity  {
     /////////TIMER FOR STEPS///////////////////////////
     public void timeDelay() {
         timer.schedule(new
-           TimerTask()
-           {
-               public void run ()
-               {
-                   timeDelay();
-               }
-           }
-        ,15000);
+                               TimerTask() {
+                                   public void run() {
+                                       timeDelay();
+                                   }
+                               }
+                , 15000);
         nSteps = stepCounter.returnSteps();
-        spm = (nSteps - oSteps)*4;
+        spm = (nSteps - oSteps) * 4;
         oSteps = nSteps;
         System.out.println("steps per min " + spm);
     }
+
     //////////SEEDER FOR FIRSTS SONG SELECTION//////////
-    public String getSeeds(String address){
+    public String getSeeds(String address) {
         StringBuilder builder = new StringBuilder();
         HttpClient client = new DefaultHttpClient();
         HttpGet httpGet = new HttpGet(address);
-        try{
+        try {
             HttpResponse response = client.execute(httpGet);
             StatusLine statusLine = response.getStatusLine();
             int statusCode = statusLine.getStatusCode();
-            if(statusCode == 200){
+            if (statusCode == 200) {
                 HttpEntity entity = response.getEntity();
                 InputStream content = entity.getContent();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(content));
                 String line;
-                while((line = reader.readLine()) != null){
+                while ((line = reader.readLine()) != null) {
                     builder.append(line);
                 }
             } else {
                 Log.e(MainActivity.class.toString(), "Failedet JSON object");
             }
-        }catch(ClientProtocolException e){
+        } catch (ClientProtocolException e) {
             e.printStackTrace();
-        } catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
         System.out.println(builder.toString());
@@ -417,6 +406,7 @@ public class MusicActivity extends Activity  {
 
             return getSeeds(urls[0]);
         }
+
         // onPostExecute displays the results of the AsyncTask.
         @Override
         protected void onPostExecute(String result) {
@@ -434,7 +424,7 @@ public class MusicActivity extends Activity  {
                     songs[i][2] = jsonobject.getString("artist");
                     songs[i][3] = jsonobject.getString("cluster");
                     songs[i][4] = jsonobject.getString("albumArtRef");
-                    System.out.println(songs[i][0] + " " + songs[i][1] + " " + songs[i][2] + " " + songs[i][3] + " " + songs[i][4] + i +  "\n");
+                    System.out.println(songs[i][0] + " " + songs[i][1] + " " + songs[i][2] + " " + songs[i][3] + " " + songs[i][4] + i + "\n");
 
                 }
 
@@ -444,90 +434,92 @@ public class MusicActivity extends Activity  {
             genMenu();
         }
     }
+
     ///////////////////////PLAY FIRST SONG///////////////////
-    public String playFirstSong(String address, String sid){
+    public String playFirstSong(String address, String sid) {
         String fullURL = address.concat("?sid=").concat(sid);
         System.out.println(fullURL);
         StringBuilder builder = new StringBuilder();
         HttpClient client = new DefaultHttpClient();
         HttpGet httpGet = new HttpGet(fullURL);
-        try{
+        try {
             HttpResponse response = client.execute(httpGet);
             StatusLine statusLine = response.getStatusLine();
             int statusCode = statusLine.getStatusCode();
-            if(statusCode == 200){
+            if (statusCode == 200) {
                 HttpEntity entity = response.getEntity();
                 InputStream content = entity.getContent();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(content));
                 String line;
-                while((line = reader.readLine()) != null){
+                while ((line = reader.readLine()) != null) {
                     builder.append(line);
                 }
             } else {
                 Log.e(MainActivity.class.toString(), "Failedet JSON object");
             }
-        }catch(ClientProtocolException e){
+        } catch (ClientProtocolException e) {
             e.printStackTrace();
-        } catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
         System.out.println(builder.toString());
         return builder.toString();
     }
+
     ///////////////NEXT SONGS////////////////////////
-    public String getNextSong(String address){
+    public String getNextSong(String address) {
         StringBuilder builder = new StringBuilder();
         HttpClient client = new DefaultHttpClient();
         HttpGet httpGet = new HttpGet(address);
-        try{
+        try {
             HttpResponse response = client.execute(httpGet);
             StatusLine statusLine = response.getStatusLine();
             int statusCode = statusLine.getStatusCode();
-            if(statusCode == 200){
+            if (statusCode == 200) {
                 HttpEntity entity = response.getEntity();
                 InputStream content = entity.getContent();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(content));
                 String line;
-                while((line = reader.readLine()) != null){
+                while ((line = reader.readLine()) != null) {
                     builder.append(line);
                 }
             } else {
                 Log.e(MainActivity.class.toString(), "Failed JSON object");
             }
-        }catch(ClientProtocolException e){
+        } catch (ClientProtocolException e) {
             e.printStackTrace();
-        } catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
         System.out.println(builder.toString());
         return builder.toString();
     }
-    private String getNextPlayListSong(String songID)
-    {
+
+    private String getNextPlayListSong(String songID) {
 
         String fullURL = "http://24.124.68.225/streamURL.php?sid=".concat(songID).concat("&action=playlist");
         System.out.println(fullURL);
         StringBuilder builder = new StringBuilder();
         HttpClient client = new DefaultHttpClient();
         HttpGet httpGet = new HttpGet(fullURL);
-        try{
+        try {
             HttpResponse response = client.execute(httpGet);
             StatusLine statusLine = response.getStatusLine();
             int statusCode = statusLine.getStatusCode();
-            if(statusCode == 200){
+            if (statusCode == 200) {
                 HttpEntity entity = response.getEntity();
                 InputStream content = entity.getContent();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(content));
                 String line;
-                while((line = reader.readLine()) != null){
+                while ((line = reader.readLine()) != null) {
                     builder.append(line);
                 }
             } else {
                 Log.e(MainActivity.class.toString(), "Failedet JSON object");
             }
-        }catch(ClientProtocolException e){
+        } catch (ClientProtocolException e) {
             e.printStackTrace();
-        } catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
         System.out.println(builder.toString());
@@ -546,35 +538,34 @@ public class MusicActivity extends Activity  {
             parseUrl(result);
         }
     }
-    private class nextSongTask extends AsyncTask<String, Void, String>
-    {
+
+    private class nextSongTask extends AsyncTask<String, Void, String> {
         @Override
-        protected String doInBackground(String... urls)
-        {
+        protected String doInBackground(String... urls) {
             System.out.println("TIS IS ARE LYNC: " + urls[0]);
             return getNextSong(urls[0]);
         }
 
         @Override
-        protected void onPostExecute(String result)
-        {
+        protected void onPostExecute(String result) {
             System.out.println("NEVER GONNA GIVE YOU UP " + result);
             parseNextSong(result);
         }
     }
 
 
-    private class setCoverArtTask extends AsyncTask<String, Void, Bitmap>
-    {
+    private class setCoverArtTask extends AsyncTask<String, Void, Bitmap> {
         //@Override
-        protected Bitmap doInBackground(String... imageUrl)
-        {
+        protected Bitmap doInBackground(String... imageUrl) {
             try {
+                if (imageUrl[0].compareTo("none") != 0) {
                     urlpic = new URL(imageUrl[0]);
                     image = BitmapFactory.decodeStream(urlpic.openConnection().getInputStream());
-            }
-            catch(MalformedURLException e)
-            {
+                } else {
+                    image = BitmapFactory.decodeResource(getResources(), R.drawable.ic_notification);
+                    //(R.drawable.ic_notification);
+                }
+            } catch (MalformedURLException e) {
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -584,34 +575,29 @@ public class MusicActivity extends Activity  {
         }
 
         @Override
-        protected void onPostExecute(Bitmap result)
-        {
+        protected void onPostExecute(Bitmap result) {
             imageCover.setImageBitmap(result);
             songTV.setText("PLAYING: " + songName);
             songTV.setHorizontallyScrolling(true);
         }
     }
 
-    private class playListSongTask extends AsyncTask<String, Void, String>
-    {
+    private class playListSongTask extends AsyncTask<String, Void, String> {
         @Override
-        protected String doInBackground(String... sid)
-        {
+        protected String doInBackground(String... sid) {
             songName = sid[1] + " - " + sid[2];
             return getNextPlayListSong(sid[0]);
         }
 
         @Override
-        protected void onPostExecute(String result)
-        {
+        protected void onPostExecute(String result) {
             parsePlayListUrl(result);
         }
     }
 
 
     ////////////////URL PARSERS////////////////////////////////////
-    private void parseUrl(String result)
-    {
+    private void parseUrl(String result) {
         try {
             JSONObject obj = new JSONObject(result);
             url = obj.getString("streamURL");
@@ -620,14 +606,12 @@ public class MusicActivity extends Activity  {
             //buttonStop.setVisibility(View.VISIBLE);
             //buttonSkip.setVisibility(View.VISIBLE);
             setSong();
-            }
-         catch (JSONException e) {
+        } catch (JSONException e) {
             e.printStackTrace();
         }
     }
 
-    private void parseNextSong(String result)
-    {
+    private void parseNextSong(String result) {
         try {
 
             JSONObject obj = new JSONObject(result);
@@ -638,14 +622,12 @@ public class MusicActivity extends Activity  {
 
             new setCoverArtTask().execute(artCover);
             setSong();
-        }
-        catch (JSONException e) {
+        } catch (JSONException e) {
             e.printStackTrace();
         }
     }
 
-    private void parsePlayListUrl(String result)
-    {
+    private void parsePlayListUrl(String result) {
         try {
             JSONObject obj = new JSONObject(result);
             url = obj.getString("streamURL");
@@ -654,16 +636,15 @@ public class MusicActivity extends Activity  {
             //buttonStop.setVisibility(View.VISIBLE);
             //buttonSkip.setVisibility(View.VISIBLE);
             setSong();
-        }
-        catch (JSONException e) {
+        } catch (JSONException e) {
             e.printStackTrace();
         }
     }
-    private class getSongsJSOUPTask extends AsyncTask<Void,Void,String>
-    {
+
+    private class getSongsJSOUPTask extends AsyncTask<Void, Void, String> {
         String page;
-        protected String doInBackground(Void... sid)
-        {
+
+        protected String doInBackground(Void... sid) {
             Connection.Response res = null;
             try {
                 page = Jsoup.connect("http://24.124.68.225/5songs.php").ignoreContentType(true).execute().body();
@@ -673,9 +654,9 @@ public class MusicActivity extends Activity  {
 
             return page;
         }
+
         @Override
-        protected void onPostExecute(String result)
-        {
+        protected void onPostExecute(String result) {
             try {
                 JSONObject obj = new JSONObject(result);
                 JSONArray songJSON = obj.getJSONArray("choices");
@@ -688,7 +669,7 @@ public class MusicActivity extends Activity  {
                     songs[i][2] = jsonobject.getString("artist");
                     songs[i][3] = jsonobject.getString("cluster");
                     songs[i][4] = jsonobject.getString("albumArtRef");
-                    System.out.println(songs[i][0] + " " + songs[i][1] + " " + songs[i][2] + " " + i +  "\n");
+                    System.out.println(songs[i][0] + " " + songs[i][1] + " " + songs[i][2] + " " + i + "\n");
 
                 }
 
@@ -701,11 +682,10 @@ public class MusicActivity extends Activity  {
     }
 
 
-    private class nextSongJSOUPTask extends AsyncTask<String,Void,String>
-    {
+    private class nextSongJSOUPTask extends AsyncTask<String, Void, String> {
         String page;
-        protected String doInBackground(String... sid)
-        {
+
+        protected String doInBackground(String... sid) {
             Connection.Response res = null;
             try {
                 page = Jsoup.connect("http://24.124.68.225/streamURL.php?sid=" + sid[0]).ignoreContentType(true).execute().body();
@@ -715,12 +695,33 @@ public class MusicActivity extends Activity  {
 
             return page;
         }
+
         @Override
-        protected void onPostExecute(String result)
-        {
+        protected void onPostExecute(String result) {
             System.out.println("Test: " + result);
             parseUrl(result);
         }
 
     }
-   }
+
+    private class MediaObserver implements Runnable {
+        private AtomicBoolean stop = new AtomicBoolean(false);
+
+        public void stop() {
+            stop.set(true);
+        }
+
+        @Override
+        public void run() {
+            while (!stop.get()) {
+                progress.setProgress(mPlayer.getCurrentPosition());
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+    }
+}

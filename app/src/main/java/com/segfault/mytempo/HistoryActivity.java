@@ -66,8 +66,6 @@ public class HistoryActivity extends ActionBarActivity {
     int[][] stepsTaken;
     int i,j;
 
-
-
     /**
      *  Track whether an authorization activity is stacking over the current activity, i.e. when
      *  a known auth error is being resolved, such as showing the account chooser or presenting a
@@ -108,7 +106,7 @@ public class HistoryActivity extends ActionBarActivity {
     private void buildFitnessClient() {
         // Create the Google API Client
         mClient = new GoogleApiClient.Builder(this)
-                .addApi(Fitness.API)
+                .addApi(Fitness.HISTORY_API)
                 .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
                 .addScope(new Scope(Scopes.FITNESS_LOCATION_READ_WRITE))
                 .addConnectionCallbacks(
@@ -210,11 +208,11 @@ public class HistoryActivity extends ActionBarActivity {
      *  An example of an asynchronous call using a callback can be found in the example
      *  on deleting data below.
      */
-    private class InsertAndVerifyDataTask extends AsyncTask<Void, Void, String> {
-        protected String doInBackground(Void... params) {
+    private class InsertAndVerifyDataTask extends AsyncTask<Void, Void, Void> {
+        protected Void doInBackground(Void... params) {
             i = 0;j = 6;
             //First, create a new dataset and insertion request.
-            /*DataSet dataSet = insertFitnessData();
+            DataSet dataSet = insertFitnessData();
             // [START insert_dataset]
             // Then, invoke the History API to insert the data and await the result, which is
             // possible here because of the {@link AsyncTask}. Always include a timeout when calling
@@ -224,13 +222,11 @@ public class HistoryActivity extends ActionBarActivity {
             com.google.android.gms.common.api.Status insertStatus =
                     Fitness.HistoryApi.insertData(mClient, dataSet)
                             .await(1, TimeUnit.MINUTES);
-
             // Before querying the data, check to see if the insertion succeeded.
             if (!insertStatus.isSuccess()) {
                 Log.i(TAG, "There was a problem inserting the dataset.");
                 return null;
             }
-
             // At this point, the data has been inserted and can be read.
             Log.i(TAG, "Data insert was successful!");
             // [END insert_dataset]*/
@@ -249,9 +245,9 @@ public class HistoryActivity extends ActionBarActivity {
             // In general, logging fitness information should be avoided for privacy reasons.
             printData(dataReadResult);
             //deleteData();
-            return "done";
+            return null;
         }
-        protected void onPostExecute(String result)
+        protected void onPostExecute(Void result)
         {
             genStepText();
             //return null;
@@ -275,7 +271,7 @@ public class HistoryActivity extends ActionBarActivity {
 
         // Create a data source
         DataSource dataSource = new DataSource.Builder()
-                .setAppPackageName(this)
+                .setAppPackageName(this.getPackageName())
                 .setDataType(DataType.TYPE_STEP_COUNT_DELTA)
                 .setName(TAG + " - step count")
                 .setType(DataSource.TYPE_RAW)
@@ -301,7 +297,7 @@ public class HistoryActivity extends ActionBarActivity {
         // [START build_read_data_request]
         // Setting a start and end date using a range of 1 week before this moment.
         Calendar cal = Calendar.getInstance();
-        Date now = new Date();
+        //Date now = new Date();
         //cal.setTime(formatted);
         int year,month,day;
         year = cal.get(Calendar.YEAR);
@@ -324,6 +320,7 @@ public class HistoryActivity extends ActionBarActivity {
                 // datapoints each consisting of a few steps and a timestamp.  The more likely
                 // scenario is wanting to see how many steps were walked per day, for 7 days.
                 .aggregate(DataType.TYPE_STEP_COUNT_DELTA, DataType.AGGREGATE_STEP_COUNT_DELTA)
+
                         // Analogous to a "Group By" in SQL, defines how data should be aggregated.
                         // bucketByTime allows for a time span, whereas bucketBySession would allow
                         // bucketing by "sessions", which would need to be defined in code.
@@ -352,14 +349,24 @@ public class HistoryActivity extends ActionBarActivity {
             for (Bucket bucket : dataReadResult.getBuckets()) {
                 List<DataSet> dataSets = bucket.getDataSets();
                 for (DataSet dataSet : dataSets) {
+                    Calendar cal = Calendar.getInstance();
+                    stepsTaken[i][1] = cal.get(Calendar.DAY_OF_MONTH) - j;
+                    stepsTaken[i][2] = cal.get(Calendar.MONTH);
                     dumpDataSet(dataSet);
-                } RelativeLayout rLayout;
+                    i++;
+                    j--;
+                }
             }
         } else if (dataReadResult.getDataSets().size() > 0) {
             Log.i(TAG, "Number of returned DataSets is: "
                     + dataReadResult.getDataSets().size());
             for (DataSet dataSet : dataReadResult.getDataSets()) {
+                Calendar cal = Calendar.getInstance();
+                stepsTaken[i][1] = cal.get(Calendar.DAY_OF_MONTH) - j;
+                stepsTaken[i][2] = cal.get(Calendar.MONTH);
                 dumpDataSet(dataSet);
+                i++;
+                j--;
             }
         }
         // [END parse_read_data_result]
@@ -371,8 +378,6 @@ public class HistoryActivity extends ActionBarActivity {
     private void dumpDataSet(DataSet dataSet) {
         Log.i(TAG, "Data returned for Data type: " + dataSet.getDataType().getName());
         SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
-        Calendar cal = Calendar.getInstance();
-
 
         for (DataPoint dp : dataSet.getDataPoints()) {
             System.out.println("             " + i);
@@ -380,18 +385,17 @@ public class HistoryActivity extends ActionBarActivity {
             Log.i(TAG, "\tType: " + dp.getDataType().getName());
             Log.i(TAG, "\tStart: " + dateFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS)));
             Log.i(TAG, "\tEnd: " + dateFormat.format(dp.getEndTime(TimeUnit.MILLISECONDS)));
-            stepsTaken[i][1] = cal.get(Calendar.DAY_OF_MONTH) - j;
-            stepsTaken[i][2] = cal.get(Calendar.MONTH);
+
             for (Field field : dp.getDataType().getFields()) {
                 Log.i(TAG, "\tField: " + field.getName() +
                         " Value: " + dp.getValue(field));
                 stepsTaken[i][0] = Integer.parseInt("" + dp.getValue(field));
             }
-            i++;
-            j--;
+
         }
     }
 
+    /*
     protected void startTimer() {
         //isTimerRunning = true;
         timer.scheduleAtFixedRate(new TimerTask() {
@@ -401,7 +405,7 @@ public class HistoryActivity extends ActionBarActivity {
 
             }
         }, 0, 1000);
-    };
+    };*/
 
     public Handler mHandler = new Handler() {
         public void handleMessage(Message msg) {
@@ -414,10 +418,10 @@ public class HistoryActivity extends ActionBarActivity {
         int y = 1;
         for(int x = 6;x >= 0;x--)
         {
-            if(stepsTaken[x][0] != 0) {
-                System.out.println("STEPS TAKEN: " + stepsTaken[x]);
+
+                System.out.println("STEPS TAKEN: " + stepsTaken[x][0]);
                 makeText(x,y);
-            }
+
             y++;
         }
     }

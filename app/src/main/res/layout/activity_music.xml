@@ -85,4 +85,14 @@
         android:visibility="visible"
         android:textColor="#ffffffff" />
 
+    <SeekBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/progressBar"
+        style="@style/Base.Widget.AppCompat.ProgressBar.Horizontal"
+        android:layout_below="@+id/songTextView"
+        android:layout_alignParentEnd="true"
+        android:layout_alignStart="@+id/play"
+        android:background="#ffa3a3a3" />
+
 </RelativeLayout>
