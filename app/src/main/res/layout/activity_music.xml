@@ -71,7 +71,7 @@
         android:layout_alignParentStart="true" />
 
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:singleLine="true"
@@ -94,5 +94,17 @@
         android:layout_alignParentEnd="true"
         android:layout_alignStart="@+id/play"
         android:background="#ffa3a3a3" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:id="@+id/dur"
+        android:textColor="#ffffffff"
+        android:text="Duration"
+        android:layout_below="@+id/progressBar"
+        android:layout_toEndOf="@+id/imageView"
+        android:layout_marginLeft="120dp"
+        android:layout_marginTop="10dp" />
 
 </RelativeLayout>

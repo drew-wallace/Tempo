@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.hardware.*;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -13,23 +15,22 @@ import java.util.TimerTask;
 public class CounterActivity extends Activity implements SensorEventListener {
 
     private SensorManager sensorManager;
-    private TextView count,steps;
+    private TextView count;
     boolean activityRunning;
     Timer timer = new Timer();
-    float oldSteps=0,newSteps,oldTime,newTime;
-    int check = 0;
-    float stepsTaken = 0,stepsPerMin = 0;
+    float stepsTaken = 0,stepsPerMin = 0,initial;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_counter);
-        oldTime = System.currentTimeMillis();
+
         count = (TextView) findViewById(R.id.count);
-        steps = (TextView) findViewById(R.id.stepsPerMin);
-        timeDelay();
+        stepsTaken = 0;
+        count.setText("" + stepsTaken);
         System.out.println("oncreate has run");
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        startTimer();
     }
 
     @Override
@@ -46,46 +47,24 @@ public class CounterActivity extends Activity implements SensorEventListener {
     }
     public CounterActivity()
     {
-        /*oldTime = System.currentTimeMillis();
-        activityRunning = true;
-        Sensor countSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
-        if (countSensor != null) {
-            sensorManager.registerListener(this, countSensor, SensorManager.SENSOR_DELAY_UI);
-            timeDelay();
-        } else {
-            stepsTaken = 1;
-            stepsPerMin = 1;
-            Toast.makeText(this, "Count sensor not available!", Toast.LENGTH_LONG).show();
-        }*/
         System.out.println("counter");
-
-
     }
     @Override
     protected void onPause() {
         super.onPause();
         activityRunning = false;
         // if you unregister the last listener, the hardware will stop detecting step events
-//        sensorManager.unregisterListener(this); 
+       sensorManager.unregisterListener(this);
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (activityRunning) {
 
-            if(check == 0)
-            {
-                newSteps = event.values[0];
-                stepsPerMin = (newSteps-oldSteps)*4;
-                stepsTaken = newSteps - oldSteps;
-                steps.setText(String.valueOf(stepsPerMin));
-                count.setText(String.valueOf(stepsTaken));
-                System.out.println("N-Steps " + newSteps + "\n");
-                System.out.println("O-Steps " + oldSteps + "\n");
-                oldSteps = newSteps;
-                check = 1;
+            if(initial == 0){
+                initial = event.values[0];
             }
-
+            stepsTaken = event.values[0] - initial;
         }
 
     }
@@ -95,25 +74,27 @@ public class CounterActivity extends Activity implements SensorEventListener {
 
     }
 
-    public void timeDelay() {
-        timer.schedule(new
+    protected void startTimer() {
+        timer.scheduleAtFixedRate(new TimerTask() {
+            public void run() {
+                mHandler.obtainMessage(1).sendToTarget();
 
-                               TimerTask()
-                               {
-                                   public void run ()
-                                   {
-                                      check = 0;
-                                      timeDelay();
-                                   }
-                               }
-                ,15000);
-    }
+            }
+        }, 0, 1000);
+    };
+
+    public Handler mHandler = new Handler() {
+        public void handleMessage(Message msg) {
+            count.setText("" + stepsTaken);
+        }
+    };
     public void onDestroy() {
 
         super.onDestroy();
 
         // Stop detecting
         sensorManager.unregisterListener(this);
+        timer.cancel();
 
         // Notifier
         Toast.makeText(this, "Tempo Stopped", Toast.LENGTH_SHORT).show();

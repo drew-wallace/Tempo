@@ -9,28 +9,13 @@
     <TextView android:textColor="@android:color/white"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Step count since reboot:"/>
+        android:text="Steps Taken"
+        android:textSize="24dp" />
     <TextView android:id="@+id/count"
         android:textSize="36dp"
         android:textColor="@android:color/white"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Steps Per Min"
-        android:id="@+id/textView4"
-        android:layout_gravity="center_horizontal"
-        android:textColor="#ffffffff" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:id="@+id/stepsPerMin"
-        android:layout_gravity="center_horizontal"
-        android:textColor="#ffffffff" />
 </LinearLayout>
 

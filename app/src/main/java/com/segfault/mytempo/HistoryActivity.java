@@ -32,6 +32,7 @@ import com.google.android.gms.fitness.request.DataReadRequest;
 import com.google.android.gms.fitness.result.DataReadResult;
 
 
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -51,8 +52,9 @@ public class HistoryActivity extends ActionBarActivity {
     RelativeLayout.LayoutParams layoutParams,layoutParams2;
     RelativeLayout rLayout;
     int counter;
-    int[][] stepsTaken;
+    int[] stepsTaken;
     int i,j;
+    String dataArray[];
     DataSource dataSource = null;
 
     /**
@@ -76,7 +78,21 @@ public class HistoryActivity extends ActionBarActivity {
         if (savedInstanceState != null) {
             authInProgress = savedInstanceState.getBoolean(AUTH_PENDING);
         }
-        stepsTaken = new int[7][3];
+        stepsTaken = new int[7];
+        dataArray = new String[7];
+
+        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd:");
+        Calendar cal;
+        int y = 0;
+        for(int k = 6;k>=0;k--)
+        {
+            cal = Calendar.getInstance();
+            cal.add(Calendar.DATE, -y);
+            dataArray[k] = dateFormat.format(cal.getTime());
+            y++;
+            cal.clear();
+
+        }
         //startTimer();
         rLayout = (RelativeLayout) findViewById(R.id.hisLayout);
         counter = 0;
@@ -201,7 +217,7 @@ public class HistoryActivity extends ActionBarActivity {
         protected Void doInBackground(Void... params) {
             i = 0;j = 6;
             //First, create a new dataset and insertion request.
-            DataSet dataSet = insertFitnessData();
+            /*DataSet dataSet = insertFitnessData();
             // [START insert_dataset]
             // Then, invoke the History API to insert the data and await the result, which is
             // possible here because of the {@link AsyncTask}. Always include a timeout when calling
@@ -302,13 +318,20 @@ public class HistoryActivity extends ActionBarActivity {
         Log.i(TAG, "Range Start: " + dateFormat.format(startTime));
         Log.i(TAG, "Range End: " + dateFormat.format(endTime));
 
+        DataSource ESTIMATED_STEP_DELTAS = new DataSource.Builder()
+                .setDataType(DataType.TYPE_STEP_COUNT_DELTA)
+                .setType(DataSource.TYPE_DERIVED)
+                .setStreamName("estimated_steps")
+                .setAppPackageName("com.google.android.gms")
+                .build();
+
         DataReadRequest readRequest = new DataReadRequest.Builder()
                 // The data request can specify multiple data types to return, effectively
                 // combining multiple data queries into one call.
                 // In this example, it's very unlikely that the request is for several hundred
                 // datapoints each consisting of a few steps and a timestamp.  The more likely
                 // scenario is wanting to see how many steps were walked per day, for 7 days.
-                .aggregate(DataType.TYPE_STEP_COUNT_DELTA, DataType.AGGREGATE_STEP_COUNT_DELTA)
+                .aggregate(ESTIMATED_STEP_DELTAS, DataType.AGGREGATE_STEP_COUNT_DELTA)
 
                         // Analogous to a "Group By" in SQL, defines how data should be aggregated.
                         // bucketByTime allows for a time span, whereas bucketBySession would allow
@@ -338,9 +361,6 @@ public class HistoryActivity extends ActionBarActivity {
             for (Bucket bucket : dataReadResult.getBuckets()) {
                 List<DataSet> dataSets = bucket.getDataSets();
                 for (DataSet dataSet : dataSets) {
-                    Calendar cal = Calendar.getInstance();
-                    stepsTaken[i][1] = cal.get(Calendar.DAY_OF_MONTH) - j;
-                    stepsTaken[i][2] = cal.get(Calendar.MONTH);
                     dumpDataSet(dataSet);
                     i++;
                     j--;
@@ -350,9 +370,6 @@ public class HistoryActivity extends ActionBarActivity {
             Log.i(TAG, "Number of returned DataSets is: "
                     + dataReadResult.getDataSets().size());
             for (DataSet dataSet : dataReadResult.getDataSets()) {
-                Calendar cal = Calendar.getInstance();
-                stepsTaken[i][1] = cal.get(Calendar.DAY_OF_MONTH) - j;
-                stepsTaken[i][2] = cal.get(Calendar.MONTH);
                 dumpDataSet(dataSet);
                 i++;
                 j--;
@@ -378,7 +395,7 @@ public class HistoryActivity extends ActionBarActivity {
             for (Field field : dp.getDataType().getFields()) {
                 Log.i(TAG, "\tField: " + field.getName() +
                         " Value: " + dp.getValue(field));
-                stepsTaken[i][0] = Integer.parseInt("" + dp.getValue(field));
+                stepsTaken[i] = Integer.parseInt("" + dp.getValue(field));
             }
 
         }
@@ -408,7 +425,7 @@ public class HistoryActivity extends ActionBarActivity {
         for(int x = 6;x >= 0;x--)
         {
 
-                System.out.println("STEPS TAKEN: " + stepsTaken[x][0]);
+                System.out.println("STEPS TAKEN: " + stepsTaken[x]);
                 makeText(x,y);
 
             y++;
@@ -416,8 +433,9 @@ public class HistoryActivity extends ActionBarActivity {
     }
     private void makeText(int i,int y)
     {
+
         stepsText = new TextView(this);
-        stepsText.setText(stepsTaken[i][2] + "/" + stepsTaken[i][1] + " " + stepsTaken[i][0]);
+        stepsText.setText(dataArray[i] + " " + stepsTaken[i]);
         stepsText.setTextSize(22);
         layoutParams = new RelativeLayout.LayoutParams(
                 RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);

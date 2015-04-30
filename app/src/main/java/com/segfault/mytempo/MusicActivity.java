@@ -11,6 +11,8 @@ import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -50,9 +52,10 @@ public class MusicActivity extends Activity {
     private MediaPlayer mPlayer;
     Button buttonPlay, buttonStop, buttonSkip;
     ImageView imageCover;
-    int duration = 100000, playing = 1;
+    int playing = 1,secondsD,minutesD;
     float oSteps = 0, nSteps = 0, spm = 0;
     Timer timer = new Timer();
+    Timer timer2 = new Timer();
     private String[][] songs;
     String url = "", pid, cluster, artCover;
     Intent intent;
@@ -61,7 +64,7 @@ public class MusicActivity extends Activity {
     boolean playListBool;
     URL urlpic;
     Bitmap image;
-    TextView songTV;
+    TextView songTV,dur;
     String songName;
     SeekBar progress;
 
@@ -88,6 +91,7 @@ public class MusicActivity extends Activity {
 
         imageCover = (ImageView) findViewById(R.id.CoverArt);
         songTV = (TextView) findViewById(R.id.songTextView);
+        dur = (TextView) findViewById(R.id.dur);
 
         buttonPlay = (Button) findViewById(R.id.play);
         buttonPlay.setOnClickListener(new OnClickListener() {
@@ -282,7 +286,6 @@ public class MusicActivity extends Activity {
         }
         try {
             mPlayer.prepare();
-            duration = mPlayer.getDuration();
             playMusic();
         } catch (IllegalStateException e) {
             //Toast.makeText(getApplicationContext(), "You might not set the URI correctly!", Toast.LENGTH_LONG).show();
@@ -298,13 +301,34 @@ public class MusicActivity extends Activity {
         observer = new MediaObserver();
         new Thread(observer).start();
         progress.setMax(mPlayer.getDuration());
+        secondsD = mPlayer.getDuration()/1000;
+        minutesD = (secondsD % 3600)/60;
+        secondsD = secondsD % 60;
 
         progress.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             int progressChanged = 0;
 
+
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser){
                 progressChanged = progress;
-                mPlayer.seekTo(progressChanged);
+                int seconds = progress/1000;
+                int minutes = (seconds % 3600) / 60;
+                seconds = seconds % 60;
+
+                /*if(seconds < 10)
+                {
+                    dur.setText(minutes + ":0" + seconds + "/" + minutesD + ":" + secondsD);
+                }
+                else
+                {
+                    dur.setText(minutes + ":" + seconds + "/" + minutesD + ":" + secondsD);
+                }*/
+
+                dur.setText(minutes + ":" + (seconds < 10 ? "0" : "") + seconds + "/" + minutesD + ":" + (secondsD < 10 ? "0" : "") + secondsD);
+
+                if(fromUser  == true) {
+                    mPlayer.seekTo(progressChanged);
+                }
             }
 
             public void onStartTrackingTouch(SeekBar seekBar) {
@@ -321,6 +345,7 @@ public class MusicActivity extends Activity {
             public void onCompletion(MediaPlayer mp) {
                 mp.reset();
                 observer.stop();
+
                 if (playListBool == false) {
                     nextSong();
                 } else {
@@ -341,6 +366,7 @@ public class MusicActivity extends Activity {
         }
         if (playListBool == false) {
             timer.cancel();
+            timer2.cancel();
         }
     }
 
@@ -354,6 +380,8 @@ public class MusicActivity extends Activity {
         super.onStop();
         if (playListBool == false) {
             timer.cancel();
+            timer2.cancel();
+
         }
     }
 
@@ -717,7 +745,7 @@ public class MusicActivity extends Activity {
                 progress.setProgress(mPlayer.getCurrentPosition());
 
                 try {
-                    Thread.sleep(750);
+                    Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -725,4 +753,5 @@ public class MusicActivity extends Activity {
         }
 
     }
+
 }

@@ -3,7 +3,10 @@ package com.segfault.mytempo;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
+import android.graphics.BitmapFactory;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -15,8 +18,9 @@ import android.widget.Toast;
 
 public class MainActivity extends ActionBarActivity {
 
-    private NotificationManager mNM;
-    //private PedometerSettings mPedometerSettings;
+    NotificationManager notificationManager;
+    Notification myNotification;
+    private static final int MY_NOTIFICATION_ID=1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,7 +29,6 @@ public class MainActivity extends ActionBarActivity {
 
         //Notifier
         Toast.makeText(this, "Tempo Started", Toast.LENGTH_SHORT).show();
-        mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
         showNotification();
 
         Button run = (Button) findViewById(R.id.stop);
@@ -96,41 +99,40 @@ public class MainActivity extends ActionBarActivity {
     /**
      * Show a notification while this service is running.
      */
-    private void showNotification() {/////icon
-        CharSequence text = getText(R.string.app_name);
-        Notification notification = new Notification(R.drawable.ic_notification, null,
-                13);
-        notification.flags = Notification.FLAG_NO_CLEAR | Notification.FLAG_ONGOING_EVENT;
-        Intent pedometerIntent = new Intent();
-        //pedometerIntent.setComponent(new ComponentName(this, Pedometer.class));
-        // pedometerIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-                pedometerIntent, 0);
-        notification.setLatestEventInfo(this, text,
-                "Counting Your Steps", contentIntent);
+    private void showNotification() {
 
-        mNM.notify(R.string.app_name, notification);
+        Context context = getApplicationContext();
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                MainActivity.this,
+                0,
+                this.getIntent(),
+                0);
+
+        myNotification = new Notification.Builder(context)
+                .setContentTitle("MyTempo!")
+                .setContentText("Playing at the Speed at You")
+                .setTicker("RunningWithYou!")
+                .setWhen(System.currentTimeMillis())
+                .setContentIntent(pendingIntent)
+                .setDefaults(Notification.DEFAULT_SOUND)
+                //.setAutoCancel(true)
+                .setSmallIcon(R.drawable.ic_notification)
+                .build();
+
+        notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.notify(MY_NOTIFICATION_ID, myNotification);
     }
     public void onDestroy() {
 
         super.onDestroy();
-
-        // Stop detecting
-        //mSensorManager.unregisterListener(mStepDetector);
-
-        // Notifier
-        Toast.makeText(this, "Tempo Stopped", Toast.LENGTH_SHORT).show();
-        onClose();
+        notificationManager.cancelAll();
+        Toast.makeText(this, "We're always watching", Toast.LENGTH_SHORT).show();
     }
-    public void cancelAll()
-    {
 
-
-    }
     public void onClose()
     {
-        mNM.cancelAll();
-        Toast.makeText(this,"Thanks for using application!!",Toast.LENGTH_LONG).show();
+        notificationManager.cancelAll();
+        Toast.makeText(this,"We're always watching",Toast.LENGTH_LONG).show();
         finish();
         return;
     }
