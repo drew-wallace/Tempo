@@ -14,6 +14,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -55,7 +57,6 @@ public class MusicActivity extends Activity {
     int playing = 1,secondsD,minutesD;
     float oSteps = 0, nSteps = 0, spm = 0;
     Timer timer = new Timer();
-    Timer timer2 = new Timer();
     private String[][] songs;
     String url = "", pid, cluster, artCover;
     Intent intent;
@@ -265,8 +266,8 @@ public class MusicActivity extends Activity {
             if (stepCounter.countingSteps() == true) {
                 timeDelay();
             } else {
-                spm = 140;
-                System.out.println("SPM hard coded to 140");
+                openOptionsMenu();
+                //System.out.println("SPM hard coded to 140");
             }
         }
     }
@@ -366,7 +367,7 @@ public class MusicActivity extends Activity {
         }
         if (playListBool == false) {
             timer.cancel();
-            timer2.cancel();
+
         }
     }
 
@@ -380,7 +381,7 @@ public class MusicActivity extends Activity {
         super.onStop();
         if (playListBool == false) {
             timer.cancel();
-            timer2.cancel();
+
 
         }
     }
@@ -753,5 +754,52 @@ public class MusicActivity extends Activity {
         }
 
     }
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
 
+        if(stepCounter == null)
+        {
+            menu.findItem(R.id.six).setTitle("NA");
+            menu.findItem(R.id.six).setEnabled(false);
+
+        }
+        getMenuInflater().inflate(R.menu.stepsmenu, menu);
+
+        return true;
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.one:
+                Toast.makeText(getApplicationContext(), "120 spm Selected", Toast.LENGTH_LONG).show();
+                spm = 120;
+                timer.cancel();
+                return true;
+            case R.id.two:
+                Toast.makeText(getApplicationContext(), "140 spm Selected", Toast.LENGTH_LONG).show();
+                spm = 140;
+                timer.cancel();
+                return true;
+            case R.id.three:
+                Toast.makeText(getApplicationContext(), "160 spm Selected", Toast.LENGTH_LONG).show();
+                spm = 160;
+                timer.cancel();
+                return true;
+            case R.id.four:
+                Toast.makeText(getApplicationContext(), "180 spm Selected", Toast.LENGTH_LONG).show();
+                spm = 180;
+                timer.cancel();
+                return true;
+            case R.id.five:
+                Toast.makeText(getApplicationContext(), "None Selected", Toast.LENGTH_LONG).show();
+                spm = 0;
+                timer.cancel();
+                return true;
+            case R.id.six:
+                Toast.makeText(getApplicationContext(), "Close Selected", Toast.LENGTH_LONG).show();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
 }
