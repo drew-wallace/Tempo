@@ -13,9 +13,9 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -49,7 +49,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class MusicActivity extends Activity {
+public class MusicActivity extends ActionBarActivity {
 
     private MediaPlayer mPlayer;
     Button buttonPlay, buttonStop, buttonSkip;
@@ -754,16 +754,17 @@ public class MusicActivity extends Activity {
         }
 
     }
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
 
-        if(stepCounter == null)
+        /*if(stepCounter == null)
         {
             menu.findItem(R.id.six).setTitle("NA");
             menu.findItem(R.id.six).setEnabled(false);
 
-        }
-        getMenuInflater().inflate(R.menu.stepsmenu, menu);
+        }*/
+        getMenuInflater().inflate(R.menu.menu_music, menu);
 
         return true;
     }
@@ -774,32 +775,33 @@ public class MusicActivity extends Activity {
                 Toast.makeText(getApplicationContext(), "120 spm Selected", Toast.LENGTH_LONG).show();
                 spm = 120;
                 timer.cancel();
-                return true;
+                return super.onOptionsItemSelected(item);
             case R.id.two:
                 Toast.makeText(getApplicationContext(), "140 spm Selected", Toast.LENGTH_LONG).show();
                 spm = 140;
                 timer.cancel();
-                return true;
+                return super.onOptionsItemSelected(item);
             case R.id.three:
                 Toast.makeText(getApplicationContext(), "160 spm Selected", Toast.LENGTH_LONG).show();
                 spm = 160;
                 timer.cancel();
-                return true;
+                return super.onOptionsItemSelected(item);
             case R.id.four:
                 Toast.makeText(getApplicationContext(), "180 spm Selected", Toast.LENGTH_LONG).show();
                 spm = 180;
                 timer.cancel();
-                return true;
+                return super.onOptionsItemSelected(item);
             case R.id.five:
                 Toast.makeText(getApplicationContext(), "None Selected", Toast.LENGTH_LONG).show();
                 spm = 0;
                 timer.cancel();
-                return true;
+                return super.onOptionsItemSelected(item);
             case R.id.six:
                 Toast.makeText(getApplicationContext(), "Close Selected", Toast.LENGTH_LONG).show();
-                return true;
+                return super.onOptionsItemSelected(item);
             default:
                 return super.onOptionsItemSelected(item);
         }
+
     }
 }
