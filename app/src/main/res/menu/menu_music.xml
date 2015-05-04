@@ -29,11 +29,16 @@
 
     <item
         android:id="@+id/five"
-        android:title="None"
+        android:title="Stop Counter"
         android:orderInCategory="100"
         app:showAsAction="never"/>
     <item
         android:id="@+id/six"
+        android:title="Start Counter"
+        android:orderInCategory="100"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/seven"
         android:title="Close"
         android:orderInCategory="100"
         app:showAsAction="never"/>

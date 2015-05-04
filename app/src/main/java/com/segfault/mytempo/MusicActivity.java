@@ -61,13 +61,14 @@ public class MusicActivity extends ActionBarActivity {
     String url = "", pid, cluster, artCover;
     Intent intent;
     private JSONArray playlistJSON;
-    int currentSong;
+    int currentSong,countingSteps = -1;
     boolean playListBool;
     URL urlpic;
     Bitmap image;
     TextView songTV,dur;
     String songName;
     SeekBar progress;
+    Menu menutmp;
 
     private SensorManager mSensorManager;
     private Sensor mSensor;
@@ -265,6 +266,7 @@ public class MusicActivity extends ActionBarActivity {
         if (stepCounter != null) {
             if (stepCounter.countingSteps() == true) {
                 timeDelay();
+                countingSteps = 1;
             } else {
                 openOptionsMenu();
                 //System.out.println("SPM hard coded to 140");
@@ -757,46 +759,70 @@ public class MusicActivity extends ActionBarActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-
-        /*if(stepCounter == null)
-        {
-            menu.findItem(R.id.six).setTitle("NA");
-            menu.findItem(R.id.six).setEnabled(false);
-
-        }*/
+        super.onCreateOptionsMenu(menu);
+        menutmp = menu;
         getMenuInflater().inflate(R.menu.menu_music, menu);
-
         return true;
     }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+
         switch (item.getItemId()) {
             case R.id.one:
                 Toast.makeText(getApplicationContext(), "120 spm Selected", Toast.LENGTH_LONG).show();
                 spm = 120;
-                timer.cancel();
-                return super.onOptionsItemSelected(item);
+                if(countingSteps == 1)
+                {
+                    timer.cancel();
+                }
+                countingSteps = 0;
+                return true;
             case R.id.two:
                 Toast.makeText(getApplicationContext(), "140 spm Selected", Toast.LENGTH_LONG).show();
                 spm = 140;
-                timer.cancel();
-                return super.onOptionsItemSelected(item);
+
+                if(countingSteps == 1)
+                {
+                    timer.cancel();
+                }
+                countingSteps = 0;
+                return true;
             case R.id.three:
                 Toast.makeText(getApplicationContext(), "160 spm Selected", Toast.LENGTH_LONG).show();
                 spm = 160;
-                timer.cancel();
-                return super.onOptionsItemSelected(item);
+
+                if(countingSteps == 1)
+                {
+                    timer.cancel();
+                }
+                countingSteps = 0;
+                return true;
             case R.id.four:
                 Toast.makeText(getApplicationContext(), "180 spm Selected", Toast.LENGTH_LONG).show();
                 spm = 180;
-                timer.cancel();
-                return super.onOptionsItemSelected(item);
+                if(countingSteps == 1)
+                {
+                    timer.cancel();
+                }
+                countingSteps = 0;
+                return true;
             case R.id.five:
-                Toast.makeText(getApplicationContext(), "None Selected", Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), "Stop Selected", Toast.LENGTH_LONG).show();
                 spm = 0;
-                timer.cancel();
-                return super.onOptionsItemSelected(item);
+                if(countingSteps == 1)
+                {
+                    timer.cancel();
+                }
+                countingSteps = 0;
+                return true;
             case R.id.six:
+                Toast.makeText(getApplicationContext(),"Counting Seleted", Toast.LENGTH_LONG).show();
+                if(countingSteps == 0)
+                {
+                    timer = new Timer();
+                    setCounter();
+                }
+            case R.id.seven:
                 Toast.makeText(getApplicationContext(), "Close Selected", Toast.LENGTH_LONG).show();
                 return super.onOptionsItemSelected(item);
             default:

@@ -11,7 +11,7 @@
         <Button
             android:layout_width="130dp"
             android:layout_height="130dp"
-            android:text="Now Playing"
+            android:text="Run"
             android:id="@+id/CoverArt"
             android:layout_toStartOf="@+id/spliter"
             android:layout_alignParentTop="true"
@@ -86,7 +86,7 @@
             android:layout_alignParentEnd="true"
             android:layout_marginRight="5dp"
             android:layout_toRightOf="@+id/spliter"
-            android:text="Run"
+            android:text="Step Counter"
             android:background="#ffffffff"
             android:layout_alignParentTop="true" />
 
@@ -120,8 +120,8 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Stop"
-            android:id="@+id/Stop"
+            android:text="About"
+            android:id="@+id/About"
             android:layout_toRightOf="@+id/Play"
             android:layout_alignTop="@+id/Play"
             android:layout_alignLeft="@+id/skip"
@@ -129,6 +129,6 @@
             android:layout_alignRight="@+id/History"
             android:layout_alignEnd="@+id/History"
             android:background="#ffffffff"
-            android:visibility="invisible" />
+            android:visibility="visible" />
 
     </RelativeLayout>
