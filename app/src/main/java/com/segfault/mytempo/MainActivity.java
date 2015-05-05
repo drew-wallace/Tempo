@@ -5,8 +5,6 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
-import android.graphics.BitmapFactory;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -32,10 +30,9 @@ public class MainActivity extends ActionBarActivity {
         showNotification();
 
         Button run = (Button) findViewById(R.id.stop);
-        run.setOnClickListener (new View.OnClickListener()
-        {
+        run.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                Intent i = new Intent(getApplicationContext(),CounterActivity.class);
+                Intent i = new Intent(getApplicationContext(), CounterActivity.class);
                 startActivity(i);
             }
         });
@@ -63,29 +60,24 @@ public class MainActivity extends ActionBarActivity {
                 startActivity(i);
             }
         });
-        Button test = (Button) findViewById(R.id.play);
-        test.setOnClickListener (new View.OnClickListener()
+        Button about = (Button) findViewById(R.id.About);
+        about.setOnClickListener (new View.OnClickListener()
         {
             public void onClick(View v) {
-                Intent i = new Intent(getApplicationContext(),Run_HistoryActivity.class);
+                Intent i = new Intent(getApplicationContext(),AboutActivity.class);
                 startActivity(i);
             }
         });
     }
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
         }
@@ -94,10 +86,6 @@ public class MainActivity extends ActionBarActivity {
     }
 
 
-
-    /**
-     * Show a notification while this service is running.
-     */
     private void showNotification() {
 
         Context context = getApplicationContext();

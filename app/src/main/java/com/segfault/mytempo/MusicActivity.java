@@ -1,6 +1,5 @@
 package com.segfault.mytempo;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -11,8 +10,6 @@ import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -36,8 +33,6 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.*;
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -68,7 +63,7 @@ public class MusicActivity extends ActionBarActivity {
     TextView songTV,dur;
     String songName;
     SeekBar progress;
-    Menu menutmp;
+    boolean nextClicked = false;
 
     private SensorManager mSensorManager;
     private Sensor mSensor;
@@ -81,11 +76,6 @@ public class MusicActivity extends ActionBarActivity {
         setContentView(R.layout.activity_music);
 
         intent = getIntent();
-
-        /*Long test = System.currentTimeMillis();
-        System.out.println("Test 1: " + test);
-        test = test - 3600000;
-        System.out.println("Test 2: " + test);*/
 
         mPlayer = new MediaPlayer();
         mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -124,6 +114,7 @@ public class MusicActivity extends ActionBarActivity {
 
             public void onClick(View v) {
                 System.out.println("song skipped");
+                observer.stop();
                 if (playing == 0) {
                     playing = 1;
                     buttonPlay.setBackgroundResource(android.R.drawable.ic_media_pause);
@@ -180,7 +171,6 @@ public class MusicActivity extends ActionBarActivity {
 
                 if (item.getTitle().toString().compareTo("RESET") == 0) {
                     firstSong();
-                    //genSongBtn.setVisibility(View.INVISIBLE);
                 } else {
                     String songTitle = item.getTitle().toString();
                     String songID = "";
@@ -211,7 +201,6 @@ public class MusicActivity extends ActionBarActivity {
                         artCover = songs[4][4];
                     }
                     new setCoverArtTask().execute(artCover);
-                    //new nextSongJSOUPTask().execute(songID);
                     new FirstSongTask().execute(songID);
 
                     Toast.makeText(
@@ -318,18 +307,9 @@ public class MusicActivity extends ActionBarActivity {
                 int minutes = (seconds % 3600) / 60;
                 seconds = seconds % 60;
 
-                /*if(seconds < 10)
-                {
-                    dur.setText(minutes + ":0" + seconds + "/" + minutesD + ":" + secondsD);
-                }
-                else
-                {
-                    dur.setText(minutes + ":" + seconds + "/" + minutesD + ":" + secondsD);
-                }*/
-
                 dur.setText(minutes + ":" + (seconds < 10 ? "0" : "") + seconds + "/" + minutesD + ":" + (secondsD < 10 ? "0" : "") + secondsD);
 
-                if(fromUser  == true) {
+                if(fromUser) {
                     mPlayer.seekTo(progressChanged);
                 }
             }
@@ -672,69 +652,6 @@ public class MusicActivity extends ActionBarActivity {
         }
     }
 
-    private class getSongsJSOUPTask extends AsyncTask<Void, Void, String> {
-        String page;
-
-        protected String doInBackground(Void... sid) {
-            Connection.Response res = null;
-            try {
-                page = Jsoup.connect("http://24.124.68.225/5songs.php").ignoreContentType(true).execute().body();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            return page;
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-            try {
-                JSONObject obj = new JSONObject(result);
-                JSONArray songJSON = obj.getJSONArray("choices");
-
-
-                for (int i = 0; i < songJSON.length(); i++) {
-                    JSONObject jsonobject = songJSON.getJSONObject(i);
-                    songs[i][0] = jsonobject.getString("title");
-                    songs[i][1] = jsonobject.getString("id");
-                    songs[i][2] = jsonobject.getString("artist");
-                    songs[i][3] = jsonobject.getString("cluster");
-                    songs[i][4] = jsonobject.getString("albumArtRef");
-                    System.out.println(songs[i][0] + " " + songs[i][1] + " " + songs[i][2] + " " + i + "\n");
-
-                }
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            genMenu();
-        }
-
-    }
-
-
-    private class nextSongJSOUPTask extends AsyncTask<String, Void, String> {
-        String page;
-
-        protected String doInBackground(String... sid) {
-            Connection.Response res = null;
-            try {
-                page = Jsoup.connect("http://24.124.68.225/streamURL.php?sid=" + sid[0]).ignoreContentType(true).execute().body();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            return page;
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-            System.out.println("Test: " + result);
-            parseUrl(result);
-        }
-
-    }
-
     private class MediaObserver implements Runnable {
         private AtomicBoolean stop = new AtomicBoolean(false);
 
@@ -758,9 +675,7 @@ public class MusicActivity extends ActionBarActivity {
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         super.onCreateOptionsMenu(menu);
-        menutmp = menu;
         getMenuInflater().inflate(R.menu.menu_music, menu);
         return true;
     }

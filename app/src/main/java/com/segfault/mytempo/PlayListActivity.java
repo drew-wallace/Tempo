@@ -48,9 +48,6 @@ public class PlayListActivity extends ActionBarActivity {
     }
 
     private void setOnClick(final Button btn,final PopupMenu popup, final JSONArray playlistJSON) {
-        //popup.getMenuInflater()
-        //        .inflate(R.menu.song_menu, popup.getMenu());
-
         btn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 System.out.println(btn.getText());
@@ -122,7 +119,6 @@ public class PlayListActivity extends ActionBarActivity {
         protected String doInBackground(String... param) {
             return getPlaylist(param[0]);
         }
-        // onPostExecute displays the results of the AsyncTask.
         @Override
         protected void onPostExecute(String result) {
 
@@ -155,15 +151,11 @@ public class PlayListActivity extends ActionBarActivity {
                 JSONObject jsonobject = playlistJSON.getJSONObject(i);
                 System.out.println("Playlist: " + jsonobject.getString("name"));
                 myButton.setText(jsonobject.getString("name"));
-                //System.out.println(jsonobject.getString("songs"));
                 JSONArray songJSONArray = jsonobject.getJSONArray("songs");
 
                 for(int j = 0; j < songJSONArray.length(); j++) {
                     JSONObject songJSON = songJSONArray.getJSONObject(j);
                     System.out.println("Store id: " + songJSON.getString("id"));
-                    //System.out.println(jsonobject.getString("storeId"));
-                    //System.out.println("Title: " + songJSON.getString("title"));
-                   // System.out.println("Artist: " + songJSON.getString("artist"));
                     popup.getMenu().add(songJSON.getString("artist") + " - " + songJSON.getString("title"));
                     System.out.println("MAKEBUTTON: TITLE: " + songJSON.getString("title") + " SONG INDEX: " + j);
                     setOnClick(myButton,popup,songJSONArray);
@@ -184,7 +176,6 @@ public class PlayListActivity extends ActionBarActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_play_list, menu);
 
 
@@ -193,12 +184,7 @@ public class PlayListActivity extends ActionBarActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
         }

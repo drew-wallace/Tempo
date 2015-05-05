@@ -62,8 +62,8 @@
             android:screenOrientation="portrait" >
         </activity>
         <activity
-            android:name=".Run_HistoryActivity"
-            android:label="@string/title_activity_run__history" >
+            android:name=".AboutActivity"
+            android:label="@string/title_activity_about" >
         </activity>
     </application>
 

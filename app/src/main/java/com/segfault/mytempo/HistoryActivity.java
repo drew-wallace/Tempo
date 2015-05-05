@@ -2,9 +2,8 @@ package com.segfault.mytempo;
 
 import android.content.Intent;
 import android.content.IntentSender;
+import android.graphics.Color;
 import android.os.AsyncTask;
-import android.os.Handler;
-import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -57,11 +56,6 @@ public class HistoryActivity extends ActionBarActivity {
     String dataArray[];
     DataSource dataSource = null;
 
-    /**
-     *  Track whether an authorization activity is stacking over the current activity, i.e. when
-     *  a known auth error is being resolved, such as showing the account chooser or presenting a
-     *  consent dialog. This avoids common duplications as might happen on screen rotations, etc.
-     */
     private static final String AUTH_PENDING = "auth_state_pending";
     private boolean authInProgress = false;
 
@@ -71,10 +65,6 @@ public class HistoryActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_history);
-        // This method sets up our custom logger, which will print all log messages to the device
-        // screen, as well as to adb logcat.
-        //initializeLogging();
-
         if (savedInstanceState != null) {
             authInProgress = savedInstanceState.getBoolean(AUTH_PENDING);
         }
@@ -93,23 +83,13 @@ public class HistoryActivity extends ActionBarActivity {
             cal.clear();
 
         }
-        //startTimer();
         rLayout = (RelativeLayout) findViewById(R.id.hisLayout);
         counter = 0;
         i = 0;
 
         buildFitnessClient();
     }
-    /**
-     *  Build a {@link com.google.android.gms.common.api.GoogleApiClient} that will authenticate the user and allow the application
-     *  to connect to Fitness APIs. The scopes included should match the scopes your app needs
-     *  (see documentation for details). Authentication will occasionally fail intentionally,
-     *  and in those cases, there will be a known resolution, which the OnConnectionFailedListener()
-     *  can address. Examples of this include the user never having signed in before, or
-     *  having multiple accounts on the device and needing to specify which account to use, etc.
-     */
     private void buildFitnessClient() {
-        // Create the Google API Client
         mClient = new GoogleApiClient.Builder(this)
                 .addApi(Fitness.HISTORY_API)
                 .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
@@ -127,8 +107,6 @@ public class HistoryActivity extends ActionBarActivity {
 
                             @Override
                             public void onConnectionSuspended(int i) {
-                                // If your connection to the sensor gets lost at some point,
-                                // you'll be able to determine the reason and react to it here.
                                 if (i == GoogleApiClient.ConnectionCallbacks.CAUSE_NETWORK_LOST) {
                                     Log.i(TAG, "Connection lost.  Cause: Network Lost.");
                                 } else if (i == GoogleApiClient.ConnectionCallbacks.CAUSE_SERVICE_DISCONNECTED) {
@@ -139,7 +117,6 @@ public class HistoryActivity extends ActionBarActivity {
                 )
                 .addOnConnectionFailedListener(
                         new GoogleApiClient.OnConnectionFailedListener() {
-                            // Called whenever the API client fails to connect.
                             @Override
                             public void onConnectionFailed(ConnectionResult result) {
                                 Log.i(TAG, "Connection failed. Cause: " + result.toString());
@@ -149,9 +126,6 @@ public class HistoryActivity extends ActionBarActivity {
                                             HistoryActivity.this, 0).show();
                                     return;
                                 }
-                                // The failure has a resolution. Resolve it.
-                                // Called typically when the app is not yet authorized, and an
-                                // authorization dialog is displayed to the user.
                                 if (!authInProgress) {
                                     try {
                                         Log.i(TAG, "Attempting to resolve failed connection");
@@ -172,7 +146,6 @@ public class HistoryActivity extends ActionBarActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        // Connect to the Fitness API
         Log.i(TAG, "Connecting...");
         mClient.connect();
     }
@@ -190,7 +163,6 @@ public class HistoryActivity extends ActionBarActivity {
         if (requestCode == REQUEST_OAUTH) {
             authInProgress = false;
             if (resultCode == RESULT_OK) {
-                // Make sure the app is not already connected or attempting to connect
                 if (!mClient.isConnecting() && !mClient.isConnected()) {
                     mClient.connect();
                 }
@@ -204,52 +176,26 @@ public class HistoryActivity extends ActionBarActivity {
         outState.putBoolean(AUTH_PENDING, authInProgress);
     }
 
-    /**
-     *  Create a {@link com.google.android.gms.fitness.data.DataSet} to insert data into the History API, and
-     *  then create and execute a {@link com.google.android.gms.fitness.request.DataReadRequest} to verify the insertion succeeded.
-     *  By using an {@link android.os.AsyncTask}, we can schedule synchronous calls, so that we can query for
-     *  data after confirming that our insert was successful. Using asynchronous calls and callbacks
-     *  would not guarantee that the insertion had concluded before the read request was made.
-     *  An example of an asynchronous call using a callback can be found in the example
-     *  on deleting data below.
-     */
     private class InsertAndVerifyDataTask extends AsyncTask<Void, Void, Void> {
         protected Void doInBackground(Void... params) {
             i = 0;j = 6;
-            //First, create a new dataset and insertion request.
+
             /*DataSet dataSet = insertFitnessData();
-            // [START insert_dataset]
-            // Then, invoke the History API to insert the data and await the result, which is
-            // possible here because of the {@link AsyncTask}. Always include a timeout when calling
-            // await() to prevent hanging that can occur from the service being shutdown because
-            // of low memory or other conditions.
             Log.i(TAG, "Inserting the dataset in the History API");
             com.google.android.gms.common.api.Status insertStatus =
                     Fitness.HistoryApi.insertData(mClient, dataSet)
                             .await(1, TimeUnit.MINUTES);
-            // Before querying the data, check to see if the insertion succeeded.
             if (!insertStatus.isSuccess()) {
                 Log.i(TAG, "There was a problem inserting the dataset.");
                 return null;
             }
-            // At this point, the data has been inserted and can be read.
-            Log.i(TAG, "Data insert was successful!");
-            // [END insert_dataset]*/
+            Log.i(TAG, "Data insert was successful!");*/
 
-            // Begin by creating the query.
             DataReadRequest readRequest = queryFitnessData();
 
-            // [START read_dataset]
-            // Invoke the History API to fetch the data with the query and await the result of
-            // the read request.
             DataReadResult dataReadResult =
                     Fitness.HistoryApi.readData(mClient, readRequest).await(1, TimeUnit.MINUTES);
-            // [END read_dataset]
-
-            // For the sake of the sample, we'll print the data so we can see what we just added.
-            // In general, logging fitness information should be avoided for privacy reasons.
             printData(dataReadResult);
-            //deleteData();
             return null;
         }
         protected void onPostExecute(Void result)
@@ -259,14 +205,8 @@ public class HistoryActivity extends ActionBarActivity {
         }
     }
 
-    /**
-     * Create and return a {@link DataSet} of step count data for the History API.
-     */
     private DataSet insertFitnessData() {
         Log.i(TAG, "Creating a new data insert request");
-
-        // [START build_insert_data_request]
-        // Set a start and end time for our data, using a start time of 1 hour before this moment.
         Calendar cal = Calendar.getInstance();
         Date now = new Date();
         cal.setTime(now);
@@ -274,7 +214,6 @@ public class HistoryActivity extends ActionBarActivity {
         cal.add(Calendar.HOUR_OF_DAY, -1);
         long startTime = cal.getTimeInMillis();
 
-        // Create a data source
         dataSource = new DataSource.Builder()
                 .setAppPackageName(this.getPackageName())
                 .setDataType(DataType.TYPE_STEP_COUNT_DELTA)
@@ -282,28 +221,18 @@ public class HistoryActivity extends ActionBarActivity {
                 .setType(DataSource.TYPE_RAW)
                 .build();
 
-        // Create a data set
         int stepCountDelta = 0;
         DataSet dataSet = DataSet.create(dataSource);
-        // For each data point, specify a start time, end time, and the data value -- in this case,
-        // the number of new steps.
         DataPoint dataPoint = dataSet.createDataPoint()
                 .setTimeInterval(startTime, endTime, TimeUnit.MILLISECONDS);
         dataPoint.getValue(Field.FIELD_STEPS).setInt(stepCountDelta);
         dataSet.add(dataPoint);
-        // [END build_insert_data_request]
-
         return dataSet;
     }
-    /**
-     * Return a {@link DataReadRequest} for all step count changes in the past week.
-     */
+
     private DataReadRequest queryFitnessData() {
-        // [START build_read_data_request]
-        // Setting a start and end date using a range of 1 week before this moment.
+
         Calendar cal = Calendar.getInstance();
-        //Date now = new Date();
-        //cal.setTime(formatted);
         int year,month,day;
         year = cal.get(Calendar.YEAR);
         month = cal.get(Calendar.MONTH);
@@ -326,35 +255,14 @@ public class HistoryActivity extends ActionBarActivity {
                 .build();
 
         DataReadRequest readRequest = new DataReadRequest.Builder()
-                // The data request can specify multiple data types to return, effectively
-                // combining multiple data queries into one call.
-                // In this example, it's very unlikely that the request is for several hundred
-                // datapoints each consisting of a few steps and a timestamp.  The more likely
-                // scenario is wanting to see how many steps were walked per day, for 7 days.
                 .aggregate(ESTIMATED_STEP_DELTAS, DataType.AGGREGATE_STEP_COUNT_DELTA)
-
-                        // Analogous to a "Group By" in SQL, defines how data should be aggregated.
-                        // bucketByTime allows for a time span, whereas bucketBySession would allow
-                        // bucketing by "sessions", which would need to be defined in code.
                 .bucketByTime(1, TimeUnit.DAYS)
                 .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                 .build();
-        // [END build_read_data_request]
         return readRequest;
     }
 
-    /**
-     * Log a record of the query result. It's possible to get more constrained data sets by
-     * specifying a data source or data type, but for demonstrative purposes here's how one would
-     * dump all the data. In this sample, logging also prints to the device screen, so we can see
-     * what the query returns, but your app should not log fitness information as a privacy
-     * consideration. A better option would be to dump the data you receive to a local data
-     * directory to avoid exposing it to other applications.
-     */
     private void printData(DataReadResult dataReadResult) {
-        // [START parse_read_data_result]
-        // If the DataReadRequest object specified aggregated data, dataReadResult will be returned
-        // as buckets containing DataSets, instead of just DataSets.
         if (dataReadResult.getBuckets().size() > 0) {
             Log.i(TAG, "Number of returned buckets of DataSets is: "
                     + dataReadResult.getBuckets().size());
@@ -375,11 +283,8 @@ public class HistoryActivity extends ActionBarActivity {
                 j--;
             }
         }
-        // [END parse_read_data_result]
     }
 
-
-    // [START parse_dataset]
 
     private void dumpDataSet(DataSet dataSet) {
         Log.i(TAG, "Data returned for Data type: " + dataSet.getDataType().getName());
@@ -401,24 +306,6 @@ public class HistoryActivity extends ActionBarActivity {
         }
     }
 
-    /*
-    protected void startTimer() {
-        //isTimerRunning = true;
-        timer.scheduleAtFixedRate(new TimerTask() {
-            public void run() {
-                //counter += 1; //increase every sec
-                mHandler.obtainMessage(1).sendToTarget();
-
-            }
-        }, 0, 1000);
-    };*/
-
-    public Handler mHandler = new Handler() {
-        public void handleMessage(Message msg) {
-            stepsText.setText(tmp);//today
-            stepsText2.setText(tmp2);//tomorrow
-        }
-    };
     private void genStepText()
     {
         int y = 1;
@@ -435,75 +322,29 @@ public class HistoryActivity extends ActionBarActivity {
     {
 
         stepsText = new TextView(this);
-        stepsText.setText(dataArray[i] + " " + stepsTaken[i]);
+        stepsText.setText(dataArray[i] + " " + stepsTaken[i] + " Steps Taken");
         stepsText.setTextSize(22);
+        stepsText.setTextColor(Color.parseColor("#FFFFFF"));
         layoutParams = new RelativeLayout.LayoutParams(
                 RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-        layoutParams.setMargins(0, 150*y, 0, 200);
+        layoutParams.setMargins(0,150*y + 100, 0, 200);
+
         rLayout.addView(stepsText,layoutParams);
     }
-
-    /**
-     * Delete a {@link DataSet} from the History API. In this example, we delete all
-     * step count data for the past 24 hours.
-     */
-    private void deleteData() {
-        Log.i(TAG, "Deleting today's step count data");
-
-        // [START delete_dataset]
-        // Set a start and end time for our data, using a start time of 1 day before this moment.
-        Calendar cal = Calendar.getInstance();
-        Date now = new Date();
-        cal.setTime(now);
-        long endTime = cal.getTimeInMillis();
-        cal.add(Calendar.MINUTE, -1);
-        long startTime = cal.getTimeInMillis();
-
-        //  Create a delete request object, providing a data type and a time interval
-        DataDeleteRequest request = new DataDeleteRequest.Builder()
-                .setTimeInterval(startTime, endTime, TimeUnit.MILLISECONDS)
-                .addDataType(DataType.TYPE_STEP_COUNT_DELTA)
-                .build();
-
-        // Invoke the History API with the Google API client object and delete request, and then
-        // specify a callback that will check the result.
-        Fitness.HistoryApi.deleteData(mClient, request)
-                .setResultCallback(new ResultCallback<Status>() {
-                    @Override
-                    public void onResult(Status status) {
-                        if (status.isSuccess()) {
-                            Log.i(TAG, "Successfully deleted today's step count data");
-                        } else {
-                            // The deletion will fail if the requesting app tries to delete data
-                            // that it did not insert.
-                            Log.i(TAG, "Failed to delete today's step count data");
-                        }
-                    }
-                });
-        // [END delete_dataset]
-    }
-
 
     @Override
 
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_history, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 }

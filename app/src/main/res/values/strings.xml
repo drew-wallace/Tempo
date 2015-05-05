@@ -12,5 +12,6 @@
     <string name="intro_text">Behold, a data dump from the Fitness API! Check the menu for more actions!</string>
     <string name="title_activity_play_list">PlayListActivity</string>
     <string name="title_activity_run__history">Run_HistoryActivity</string>
+    <string name="title_activity_about">AboutActivity</string>
 
 </resources>

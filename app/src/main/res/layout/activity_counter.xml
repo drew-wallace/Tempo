@@ -5,11 +5,29 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_material_dark"
-    android:id="@+id/counterBG">
+    android:id="@+id/counterBG"
+    android:weightSum="1">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Step Counter Tester"
+        android:id="@+id/textView14"
+        android:textColor="#ffffffff" />
+
+    <Button
+        android:layout_width="221dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/button"
+        android:layout_gravity="center_horizontal"
+        android:layout_weight="0.45"
+        android:background="@mipmap/ic_launcher" />
+
     <TextView android:textColor="@android:color/white"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Steps Taken"
+        android:text="Steps Counted"
         android:textSize="24dp" />
     <TextView android:id="@+id/count"
         android:textSize="36dp"
