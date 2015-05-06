@@ -26,7 +26,7 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
 
         //Notifier
-        Toast.makeText(this, "Tempo Started", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "Tempo Started", Toast.LENGTH_SHORT).show();
         showNotification();
 
         Button run = (Button) findViewById(R.id.stop);
@@ -101,7 +101,7 @@ public class MainActivity extends ActionBarActivity {
                 .setTicker("RunningWithYou!")
                 .setWhen(System.currentTimeMillis())
                 .setContentIntent(pendingIntent)
-                .setDefaults(Notification.DEFAULT_SOUND)
+                //.setDefaults(Notification.DEFAULT_SOUND)
                 //.setAutoCancel(true)
                 .setSmallIcon(R.drawable.ic_notification)
                 .build();
@@ -113,13 +113,13 @@ public class MainActivity extends ActionBarActivity {
 
         super.onDestroy();
         notificationManager.cancelAll();
-        Toast.makeText(this, "We're always watching", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "We're always watching", Toast.LENGTH_SHORT).show();
     }
 
     public void onClose()
     {
         notificationManager.cancelAll();
-        Toast.makeText(this,"We're always watching",Toast.LENGTH_LONG).show();
+        //Toast.makeText(this,"We're always watching",Toast.LENGTH_LONG).show();
         finish();
         return;
     }

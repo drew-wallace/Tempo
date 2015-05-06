@@ -160,11 +160,21 @@ public class MusicActivity extends ActionBarActivity {
         popup.getMenuInflater()
                 .inflate(R.menu.popup_menu, popup.getMenu());
 
-        popup.getMenu().findItem(R.id.one).setTitle(songs[0][0]);
-        popup.getMenu().findItem(R.id.two).setTitle(songs[1][0]);
-        popup.getMenu().findItem(R.id.three).setTitle(songs[2][0]);
-        popup.getMenu().findItem(R.id.four).setTitle(songs[3][0]);
-        popup.getMenu().findItem(R.id.five).setTitle(songs[4][0]);
+        popup.getMenu().findItem(R.id.one).setTitle("Song: " + songs[0][0]);
+        popup.getMenu().findItem(R.id.oneName).setTitle("Artist: " + songs[0][2]);
+        popup.getMenu().findItem(R.id.oneName).setEnabled(false);
+        popup.getMenu().findItem(R.id.two).setTitle("Song: " + songs[1][0]);
+        popup.getMenu().findItem(R.id.twoName).setTitle("Artist: " + songs[1][2]);
+        popup.getMenu().findItem(R.id.twoName).setEnabled(false);
+        popup.getMenu().findItem(R.id.three).setTitle("Song: " + songs[2][0]);
+        popup.getMenu().findItem(R.id.threeName).setTitle("Artist: " + songs[2][2]);
+        popup.getMenu().findItem(R.id.threeName).setEnabled(false);
+        popup.getMenu().findItem(R.id.four).setTitle("Song: " + songs[3][0]);
+        popup.getMenu().findItem(R.id.fourName).setTitle("Artist: " + songs[3][2]);
+        popup.getMenu().findItem(R.id.fourName).setEnabled(false);
+        popup.getMenu().findItem(R.id.five).setTitle("Song: " + songs[4][0]);
+        popup.getMenu().findItem(R.id.fiveName).setTitle("Artist: " + songs[4][2]);
+        popup.getMenu().findItem(R.id.fiveName).setEnabled(false);
         //registering popup with OnMenuItemClickListener
         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             public boolean onMenuItemClick(MenuItem item) {
@@ -173,6 +183,8 @@ public class MusicActivity extends ActionBarActivity {
                     firstSong();
                 } else {
                     String songTitle = item.getTitle().toString();
+                    songTitle = songTitle.substring(songTitle.indexOf(':') + 2,songTitle.length());
+                    System.out.println(songTitle);
                     String songID = "";
                     if (songTitle.compareTo(songs[0][0]) == 0) {
                         songName = songs[0][0] + " - " + songs[0][2];
