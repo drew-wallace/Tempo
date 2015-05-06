@@ -65,10 +65,6 @@
             android:name=".AboutActivity"
             android:label="@string/title_activity_about" >
         </activity>
-        <activity
-            android:name=".StartScreenActivity"
-            android:label="@string/title_activity_start_screen" >
-        </activity>
     </application>
 
 </manifest>
