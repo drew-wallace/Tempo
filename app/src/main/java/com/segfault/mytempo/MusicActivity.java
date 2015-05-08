@@ -46,10 +46,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MusicActivity extends ActionBarActivity {
 
-    private MediaPlayer mPlayer;
+    private MediaPlayer mPlayer,mPlayerTmp;
     Button buttonPlay, buttonStop, buttonSkip;
     ImageView imageCover;
-    int playing = 1,secondsD,minutesD;
+    int playing = 1,secondsD,minutesD,songDur,check;
     float oSteps = 0, nSteps = 0, spm = 0;
     Timer timer = new Timer();
     private String[][] songs;
@@ -79,11 +79,14 @@ public class MusicActivity extends ActionBarActivity {
 
         mPlayer = new MediaPlayer();
         mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        mPlayerTmp = new MediaPlayer();
+        mPlayerTmp.setAudioStreamType(AudioManager.STREAM_MUSIC);
         progress = (SeekBar) findViewById(R.id.progressBar);
 
         imageCover = (ImageView) findViewById(R.id.CoverArt);
         songTV = (TextView) findViewById(R.id.songTextView);
         dur = (TextView) findViewById(R.id.dur);
+        check = -1;
 
         buttonPlay = (Button) findViewById(R.id.play);
         buttonPlay.setOnClickListener(new OnClickListener() {
@@ -105,7 +108,7 @@ public class MusicActivity extends ActionBarActivity {
         buttonStop.setOnClickListener(new OnClickListener() {
 
             public void onClick(View v) {
-               onBackPressed();
+                onBackPressed();
             }
         });
 
@@ -212,7 +215,7 @@ public class MusicActivity extends ActionBarActivity {
                         cluster = songs[4][3];
                         artCover = songs[4][4];
                     }
-                    new setCoverArtTask().execute(artCover);
+                    //new setCoverArtTask().execute(artCover);
                     new FirstSongTask().execute(songID);
 
                     Toast.makeText(
@@ -278,7 +281,13 @@ public class MusicActivity extends ActionBarActivity {
     ///////sets song for media player////////////
     public void setSong() {
         try {
-            mPlayer.setDataSource(url);
+            if(check == -1) {
+                mPlayer.setDataSource(url);
+            }
+           else
+            {
+                mPlayerTmp.setDataSource(url);
+            }
         } catch (IllegalArgumentException e) {
             //Toast.makeText(getApplicationContext(), "You might not set the URI correctly!", Toast.LENGTH_LONG).show();
         } catch (SecurityException e) {
@@ -289,8 +298,17 @@ public class MusicActivity extends ActionBarActivity {
             e.printStackTrace();
         }
         try {
-            mPlayer.prepare();
-            playMusic();
+
+            if(check == -1) {
+                check = 0;
+                mPlayer.prepare();
+                playMusic();
+            }
+            else
+            {
+
+                mPlayerTmp.prepare();
+            }
         } catch (IllegalStateException e) {
             //Toast.makeText(getApplicationContext(), "You might not set the URI correctly!", Toast.LENGTH_LONG).show();
         } catch (IOException e) {
@@ -301,7 +319,10 @@ public class MusicActivity extends ActionBarActivity {
     ///////starts media player/////////
     public void playMusic() {
         playing = 1;
+        check = 0;
         mPlayer.start();
+        new setCoverArtTask().execute(artCover);
+        songDur = mPlayer.getDuration();
         observer = new MediaObserver();
         new Thread(observer).start();
         progress.setMax(mPlayer.getDuration());
@@ -320,7 +341,15 @@ public class MusicActivity extends ActionBarActivity {
                 seconds = seconds % 60;
 
                 dur.setText(minutes + ":" + (seconds < 10 ? "0" : "") + seconds + "/" + minutesD + ":" + (secondsD < 10 ? "0" : "") + secondsD);
-
+                if(progress >= songDur-15000 && check == 0)
+                {
+                    check = 1;
+                    if (playListBool == false) {
+                        nextSong();
+                    } else {
+                        nextPlayListSong();
+                    }
+                }
                 if(fromUser) {
                     mPlayer.seekTo(progressChanged);
                 }
@@ -332,7 +361,7 @@ public class MusicActivity extends ActionBarActivity {
 
             public void onStopTrackingTouch(SeekBar seekBar) {
                 //Toast.makeText(SeekbarActivity.this,"seek bar progress:"+progressChanged,
-                        //Toast.LENGTH_SHORT).show();
+                //Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -340,12 +369,16 @@ public class MusicActivity extends ActionBarActivity {
             public void onCompletion(MediaPlayer mp) {
                 mp.reset();
                 observer.stop();
+                check = 0;
+                //mPlayer = mPlayerTmp.clone();
 
-                if (playListBool == false) {
+                playMusic();
+                mPlayerTmp.reset();
+                /*if (playListBool == false) {
                     nextSong();
                 } else {
                     nextPlayListSong();
-                }
+                }*/
             }
         });
     }
@@ -393,15 +426,6 @@ public class MusicActivity extends ActionBarActivity {
         spm = (nSteps - oSteps) * 4;
         oSteps = nSteps;
         System.out.println("steps per min " + spm);
-    }
-    public void timeDelay2() {
-        timer.schedule(new
-                               TimerTask() {
-                                   public void run() {
-
-                                   }
-                               }
-                , mPlayer.getDuration() - 15000);
     }
 
     //////////SEEDER FOR FIRSTS SONG SELECTION//////////
@@ -652,7 +676,7 @@ public class MusicActivity extends ActionBarActivity {
             url = obj.getString("streamURL");
             songName = song.getString("title") + " " + song.getString("artist");
 
-            new setCoverArtTask().execute(artCover);
+            //new setCoverArtTask().execute(artCover);
             setSong();
         } catch (JSONException e) {
             e.printStackTrace();
