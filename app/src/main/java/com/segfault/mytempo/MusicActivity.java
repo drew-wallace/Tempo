@@ -46,10 +46,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MusicActivity extends ActionBarActivity {
 
-    private MediaPlayer mPlayer,mPlayerTmp;
+    private MediaPlayer mPlayer;
+    private MediaPlayer[] mPlayerTmp;
     Button buttonPlay, buttonStop, buttonSkip;
     ImageView imageCover;
-    int playing = 1,secondsD,minutesD,songDur,check;
+    int playing = 1,secondsD,minutesD,songDur,check,mpTmp;
     float oSteps = 0, nSteps = 0, spm = 0;
     Timer timer = new Timer();
     private String[][] songs;
@@ -77,10 +78,14 @@ public class MusicActivity extends ActionBarActivity {
 
         intent = getIntent();
 
+        mPlayerTmp = new MediaPlayer[2];
+
         mPlayer = new MediaPlayer();
         mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        mPlayerTmp = new MediaPlayer();
-        mPlayerTmp.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        mPlayerTmp[0] = new MediaPlayer();
+        mPlayerTmp[0].setAudioStreamType(AudioManager.STREAM_MUSIC);
+        mPlayerTmp[1] = new MediaPlayer();
+        mPlayerTmp[1].setAudioStreamType(AudioManager.STREAM_MUSIC);
         progress = (SeekBar) findViewById(R.id.progressBar);
 
         imageCover = (ImageView) findViewById(R.id.CoverArt);
@@ -286,7 +291,7 @@ public class MusicActivity extends ActionBarActivity {
             }
            else
             {
-                mPlayerTmp.setDataSource(url);
+                mPlayerTmp[mpTmp].setDataSource(url);
             }
         } catch (IllegalArgumentException e) {
             //Toast.makeText(getApplicationContext(), "You might not set the URI correctly!", Toast.LENGTH_LONG).show();
@@ -307,7 +312,7 @@ public class MusicActivity extends ActionBarActivity {
             else
             {
 
-                mPlayerTmp.prepare();
+                mPlayerTmp[mpTmp].prepare();
             }
         } catch (IllegalStateException e) {
             //Toast.makeText(getApplicationContext(), "You might not set the URI correctly!", Toast.LENGTH_LONG).show();
@@ -370,10 +375,18 @@ public class MusicActivity extends ActionBarActivity {
                 mp.reset();
                 observer.stop();
                 check = 0;
-                //mPlayer = mPlayerTmp.clone();
+
 
                 playMusic();
-                mPlayerTmp.reset();
+                if(mpTmp == 0) {
+                    mPlayer = mPlayerTmp[0];
+                    mPlayerTmp[1].reset();
+                }
+                else
+                {
+                    mPlayer = mPlayerTmp[1];
+                    mPlayerTmp[0].reset();
+                }
                 /*if (playListBool == false) {
                     nextSong();
                 } else {
@@ -390,6 +403,16 @@ public class MusicActivity extends ActionBarActivity {
         if (mPlayer != null) {
             mPlayer.release();
             mPlayer = null;
+            //observer.stop();
+        }
+        if (mPlayerTmp[0] != null) {
+            mPlayerTmp[0].release();
+            mPlayerTmp[0] = null;
+            //observer.stop();
+        }
+        if (mPlayerTmp[1] != null) {
+            mPlayerTmp[1].release();
+            mPlayerTmp[1] = null;
             //observer.stop();
         }
         if (playListBool == false) {
