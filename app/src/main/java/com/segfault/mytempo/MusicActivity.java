@@ -394,6 +394,15 @@ public class MusicActivity extends ActionBarActivity {
         oSteps = nSteps;
         System.out.println("steps per min " + spm);
     }
+    public void timeDelay2() {
+        timer.schedule(new
+                               TimerTask() {
+                                   public void run() {
+
+                                   }
+                               }
+                , mPlayer.getDuration() - 15000);
+    }
 
     //////////SEEDER FOR FIRSTS SONG SELECTION//////////
     public String getSeeds(String address) {
