@@ -240,11 +240,34 @@ public class MusicActivity extends ActionBarActivity {
     ///////SKIP BUTTON FUNCTION////////////
     public void skipSong() {
         mPlayer.reset();
-        if (playListBool == false) {
-            nextSong();
-        } else {
-            nextPlayListSong();
-        }
+        observer.stop();
+
+        /*if(check == 1){
+
+            if(mpTmp == 0) {
+                mPlayer = mPlayerTmp[0];
+                mPlayerTmp[1].reset();
+                mpTmp = 1;
+            }
+            else
+            {
+                mPlayer = mPlayerTmp[1];
+                mPlayerTmp[0].reset();
+                mpTmp = 0;
+            }
+            playMusic();
+        }*/
+        //else {
+            check = -1;
+            mPlayerTmp[0].reset();;
+            mPlayerTmp[1].reset();
+            mpTmp = 0;
+            if (playListBool == false) {
+                nextSong();
+            } else {
+                nextPlayListSong();
+            }
+        //}
     }
 
     ///////Plays next in playlist/////////
@@ -305,14 +328,16 @@ public class MusicActivity extends ActionBarActivity {
         try {
 
             if(check == -1) {
-                check = 0;
                 mPlayer.prepare();
+                mpTmp = 0;
+                System.out.println("first song or skipped early");
                 playMusic();
             }
             else
             {
 
                 mPlayerTmp[mpTmp].prepare();
+                System.out.println("prepping");
             }
         } catch (IllegalStateException e) {
             //Toast.makeText(getApplicationContext(), "You might not set the URI correctly!", Toast.LENGTH_LONG).show();
@@ -325,6 +350,7 @@ public class MusicActivity extends ActionBarActivity {
     public void playMusic() {
         playing = 1;
         check = 0;
+
         mPlayer.start();
         new setCoverArtTask().execute(artCover);
         songDur = mPlayer.getDuration();
@@ -346,7 +372,7 @@ public class MusicActivity extends ActionBarActivity {
                 seconds = seconds % 60;
 
                 dur.setText(minutes + ":" + (seconds < 10 ? "0" : "") + seconds + "/" + minutesD + ":" + (secondsD < 10 ? "0" : "") + secondsD);
-                if(progress >= songDur-15000 && check == 0)
+                if(mPlayer.getCurrentPosition() >= mPlayer.getDuration()-15000 && check == 0)
                 {
                     check = 1;
                     if (playListBool == false) {
@@ -374,24 +400,27 @@ public class MusicActivity extends ActionBarActivity {
             public void onCompletion(MediaPlayer mp) {
                 mp.reset();
                 observer.stop();
-                check = 0;
 
-
-                playMusic();
-                if(mpTmp == 0) {
-                    mPlayer = mPlayerTmp[0];
-                    mPlayerTmp[1].reset();
+                if(check == 1) {
+                    if (mpTmp == 0) {
+                        mPlayer = mPlayerTmp[0];
+                        mPlayerTmp[1].reset();
+                        mpTmp = 1;
+                    } else {
+                        mPlayer = mPlayerTmp[1];
+                        mPlayerTmp[0].reset();
+                        mpTmp = 0;
+                    }
+                    playMusic();
+                    System.out.println("next hit this");
                 }
-                else
-                {
-                    mPlayer = mPlayerTmp[1];
-                    mPlayerTmp[0].reset();
+                else {
+                    if (playListBool == false) {
+                        nextSong();
+                    } else {
+                        nextPlayListSong();
+                    }
                 }
-                /*if (playListBool == false) {
-                    nextSong();
-                } else {
-                    nextPlayListSong();
-                }*/
             }
         });
     }
